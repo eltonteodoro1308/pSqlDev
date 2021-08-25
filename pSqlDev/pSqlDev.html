@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pSqlDev</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        vertical-align: baseline;
+      }
+      html {
+        overflow-y: hidden;
+        overflow-x: hidden;
+      }
+      body {
+        line-height: 1;
+      }
+      #waiting {
+        font-family: Consolas;
+        border: 2px solid black;
+        padding: 1em;
+        text-align: center;
+        max-width: 15em;
+        margin: 20% auto;
+      }
+      #editor {
+        display: none;
+        font-family: Consolas;
+        font-size: medium;
+        position: absolute;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        margin: auto;
+        resize: none;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow: scroll;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="waiting">Aguarde conectando ...</div>
+    <textarea id="editor"> </textarea>
+    <script src="twebchannel.js"></script>
+    <script>
+      window.onload = function () {
+        // Fecha conexao entre o AdvPL e o JavaScript via WebSocket
+        twebchannel.connect(() => {
+          document.querySelector('#editor').style.display = 'block';
+          document.querySelector('#waiting').style.display = 'none';
+          twebchannel.jsToAdvpl('activeButtons', '');
+          console.log('Websocket Connected!');
+        });
+        twebchannel.advplToJs = function (key, value) {
+          // ----------------------------------------------------------
+          // Insira aqui o tratamento para as mensagens vindas do AdvPL
+          // ----------------------------------------------------------
+        };
+      };
+      function makeQueryObject(trimComments) {
+        let queryObject = {};
+        let editor = document.querySelector('textarea');
+        let start = editor.selectionStart;
+        let end = editor.selectionEnd;
+        let selection = editor.value.substring(start, end);
+        let value = editor.value;
+
+        queryObject.query = selection ? selection : value;
+        queryObject.query = queryObject.query.replace(
+          /%NOTDEL%/gi,
+          "D_E_L_E_T_=' '"
+        );
+        queryObject.advplExpressions = queryObject.query.match(/--\?.*/gi);
+
+        if (trimComments) {
+          queryObject.query = queryObject.query.replace(
+            /(^[ \t]*\*.*$)|(--.*)|(((\/\*)+?[\w\W]*?(\*\/)+))/gim,
+            ''
+          );
+        }
+        queryObject.embeddedExpressions =
+          queryObject.query.match(/%EXP:[ -ÿ]*%/gi);
+        queryObject.columns = queryObject.query.match(
+          /COLUMN[ \t]+[\w]+[ \t]+AS[ \t]+(DATE|LOGICAL|(NUMERIC[ \t]*\([ \t]*\d+[ \t]*,[ \t]*\d+[ \t]*\)))/gi
+        );
+        queryObject.query = queryObject.query.replace(
+          /COLUMN[ \t]+[\w]+[ \t]+AS[ \t]+(DATE|LOGICAL|(NUMERIC[ \t]*\([ \t]*\d+[ \t]*,[ \t]*\d+[ \t]*\)))/gi,
+          ''
+        );
+        queryObject.tables = queryObject.query.match(
+          /%TABLE:[A-Za-z0-9]{3}%/gi
+        );
+        queryObject.branch = queryObject.query.match(
+          /%XFILIAL:[A-Za-z0-9]{3}%/gi
+        );
+        queryObject.order = queryObject.query.match(
+          /%ORDER:[A-Za-b0-9]{3}([,][a-bA-B0-9]+)?%/gi
+        );
+        queryObject.noParser = !!queryObject.query.match(/%NOPARSER%/gi);
+        queryObject.query = queryObject.query.replace(/%NOPARSER%/gi, '');
+
+        twebchannel.jsToAdvpl('queryObject', JSON.stringify(queryObject)).trim();
+      }
+    </script>
+  </body>
+</html>
