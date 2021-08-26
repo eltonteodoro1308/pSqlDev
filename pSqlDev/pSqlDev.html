@@ -98,7 +98,7 @@
         queryObject.tables = queryObject.query.match(
           /%TABLE:[A-Za-z0-9]{3}%/gi
         );
-        queryObject.branch = queryObject.query.match(
+        queryObject.branchs = queryObject.query.match(
           /%XFILIAL:[A-Za-z0-9]{3}%/gi
         );
         queryObject.order = queryObject.query.match(
@@ -107,7 +107,9 @@
         queryObject.noParser = !!queryObject.query.match(/%NOPARSER%/gi);
         queryObject.query = queryObject.query.replace(/%NOPARSER%/gi, '');
 
-        twebchannel.jsToAdvpl('queryObject', JSON.stringify(queryObject)).trim();
+        queryObject.query = queryObject.query.replace(/^[\s\t\n]*/gim, '');
+
+        twebchannel.jsToAdvpl('queryObject', JSON.stringify(queryObject));
       }
     </script>
   </body>
