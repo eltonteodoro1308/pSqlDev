@@ -65,7 +65,7 @@
           // ----------------------------------------------------------
         };
       };
-      function makeQueryObject(trimComments) {
+      function makeQueryObject(trimComments,commandType) {
         let queryObject = {};
         let editor = document.querySelector('textarea');
         let start = editor.selectionStart;
@@ -109,7 +109,7 @@
 
         queryObject.query = queryObject.query.replace(/^[\s\t\n]*/gim, '');
 
-        twebchannel.jsToAdvpl('queryObject', JSON.stringify(queryObject));
+        twebchannel.jsToAdvpl(commandType, JSON.stringify(queryObject));
       }
     </script>
   </body>

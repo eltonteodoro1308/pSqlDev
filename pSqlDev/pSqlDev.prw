@@ -7,6 +7,7 @@
 
 //TODO Permitir a transposição de colunas em linhas
 //TODO Em parâmetros quantidade de linhas máximas a exibir, se faz o changequery, se tira os comentários na exportação do parser
+//TODO Para script sql considerar ; para processar mais de um commando de uma vez
 
 user function pSqlDev()
 
@@ -14,7 +15,8 @@ user function pSqlDev()
 
 	Local oDfSzDlg    := FwDefSize():New( .F. )
 	Local oDfSzBtn    := FwDefSize():New( .F. )
-	Local oBtnRun     := nil
+	Local oBtnQuery   := nil
+	local oBtnScript  := nil
 	Local oBtnOpen    := nil
 	Local oBtnSave    := nil
 	Local oBtnParam   := nil
@@ -39,7 +41,8 @@ user function pSqlDev()
 	oDfSzDlg:AddObject ( 'oWebEngine' , 000, 000, .T., .T. )
 	oDfSzDlg:Process()
 
-	oDfSzBtn:AddObject ( 'oBtnRun'   , 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtnQuery'  , 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtnScript' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnOpen'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnSave'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnParam' , 055, 015, .F., .F. )
@@ -54,12 +57,19 @@ user function pSqlDev()
 
 	DEFINE MSDIALOG oDialog TITLE cTitle FROM nTop, nLeft TO nBottom, nRight PIXEL
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnRun', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnRun', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnRun', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnRun', 'YSIZE'  )
+	nRow    := oDfSzBtn:GetDimension( 'oBtnQuery', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnRun PROMPT 'EXECUTAR <F5>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oWebEngine:runJavaScript('makeQueryObject(true)') PIXEL
+	@ nRow, nColumn BUTTON oBtnQuery PROMPT 'QUERY <F5>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oWebEngine:runJavaScript('makeQueryObject(true,"query")') PIXEL
+
+	nRow    := oDfSzBtn:GetDimension( 'oBtnScript', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  )
+
+	@ nRow, nColumn BUTTON oBtnScript PROMPT 'SCRIPT <F6>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oWebEngine:runJavaScript('makeQueryObject(true,"script")') PIXEL
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnOpen', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnOpen', 'COLINI' )
@@ -117,7 +127,11 @@ static function jsToAdvpl( self, key, value )
 
 		aEval( oDialog:aControls, { |item| if( getClassName( item ) == 'TBUTTON', item:enable(), nil ) } )
 
-	elseIf key == 'queryObject'
+	elseIf key == 'query'
+
+		oJson:fromJson(value)
+	
+	elseIf key == 'script'
 
 		oJson:fromJson(value)
 
