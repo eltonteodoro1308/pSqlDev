@@ -11,20 +11,25 @@
 
 user function pSqlDev()
 
-	Static oDialog    := nil
+	Static oDialog   := nil
 
+	Local cCacheFile  := 'pSqlDev.sql'
+	Local cCache      := memoRead( cCacheFile )
 	Local oDfSzDlg    := FwDefSize():New( .F. )
 	Local oDfSzBtn    := FwDefSize():New( .F. )
 	Local oBtnQuery   := nil
 	local oBtnScript  := nil
+	local oBtnParse   := nil
 	Local oBtnOpen    := nil
 	Local oBtnSave    := nil
-	Local oBtnParam   := nil
 	Local oBtnClose   := nil
+	Local oChkCommnt  := nil
+	Local lChkCommnt  := .T.
+	Local oChkTransp  := nil
+	Local lChkTransp  := .F.
 	Local oWebChannel := nil
 	Local oWebEngine  := nil
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
-	Local cCache      := memoRead( 'pSqlDev.sql' )
 	Local oFontBtn    := TFont():New( 'Consolas',,-12,,.T. )
 
 	Local nTop    := 0
@@ -43,10 +48,12 @@ user function pSqlDev()
 
 	oDfSzBtn:AddObject ( 'oBtnQuery' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnScript', 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtnParse' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnOpen'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnSave'  , 055, 015, .F., .F. )
-	oDfSzBtn:AddObject ( 'oBtnParam' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnClose' , 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oChkCommnt', 080, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oChkTransp', 080, 015, .F., .F. )
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
 
@@ -62,14 +69,27 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnQuery PROMPT 'QUERY <F5>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oWebEngine:runJavaScript('makeQueryObject(true,"query")') PIXEL
+	@ nRow, nColumn BUTTON oBtnQuery PROMPT 'QUERY <F5>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn;
+		ACTION oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' ) PIXEL
+	oBtnQuery:cToolTip := "Executa uma query de consulta ao banco de dados."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnScript', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' )
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnScript PROMPT 'SCRIPT <F6>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oWebEngine:runJavaScript('makeQueryObject(true,"script")') PIXEL
+	@ nRow, nColumn BUTTON oBtnScript PROMPT 'SCRIPT <F6>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION;
+		oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) PIXEL
+	oBtnScript:cToolTip := "Executa um script sql no banco de dados."
+
+	nRow    := oDfSzBtn:GetDimension( 'oBtnParse', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oBtnParse', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oBtnParse', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oBtnParse', 'YSIZE'  )
+
+	@ nRow, nColumn BUTTON oBtnParse PROMPT 'PARSE' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION;
+		oWebEngine:runJavaScript( 'makeQueryObject(' + IF( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) PIXEL
+	oBtnParse:cToolTip := "Faz o parse da query, tratando e resolvendo o embedded sql."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnOpen', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnOpen', 'COLINI' )
@@ -77,13 +97,7 @@ user function pSqlDev()
 	nHeight := oDfSzBtn:GetDimension( 'oBtnOpen', 'YSIZE'  )
 
 	@ nRow, nColumn BUTTON oBtnOpen PROMPT 'ABRIR' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION alert('ABRIR') PIXEL
-
-	nRow    := oDfSzBtn:GetDimension( 'oBtnParam', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnParam', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnParam', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnParam', 'YSIZE'  )
-
-	@ nRow, nColumn BUTTON oBtnParam PROMPT 'PARAMETROS' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION alert('PARAMETROS') PIXEL
+	oBtnOpen:cToolTip := "Abre um arquivo salvo."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnSave', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnSave', 'COLINI' )
@@ -91,6 +105,7 @@ user function pSqlDev()
 	nHeight := oDfSzBtn:GetDimension( 'oBtnSave', 'YSIZE'  )
 
 	@ nRow, nColumn BUTTON oBtnSave PROMPT 'SALVAR' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION alert('SALVAR') PIXEL
+	oBtnSave:cToolTip := "Salvo a consulta."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' )
@@ -98,6 +113,23 @@ user function pSqlDev()
 	nHeight := oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  )
 
 	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oDialog:End() PIXEL
+	oBtnClose:cToolTip := "Fecha o programa."
+
+	nRow    := oDfSzBtn:GetDimension( 'oChkCommnt', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oChkCommnt', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oChkCommnt', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oChkCommnt', 'YSIZE'  )
+
+	@ nRow+5, nColumn+5 CHECKBOX oChkCommnt VAR lChkCommnt PROMPT "PARSE SEM COMENTÁRIOS" SIZE nWidth, nHeight OF oDialog FONT oFontBtn PIXEL
+	oChkCommnt:cToolTip := "No parser da query exclui os comentários."
+
+	nRow    := oDfSzBtn:GetDimension( 'oChkTransp', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oChkTransp', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oChkTransp', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oChkTransp', 'YSIZE'  )
+
+	@ nRow+5, nColumn+10 CHECKBOX oChkTransp VAR lChkTransp PROMPT "TRANSPÕE A CONSULTA" SIZE nWidth, nHeight OF oDialog FONT oFontBtn PIXEL
+	oChkTransp:cToolTip := "Faz a transposição da consulta."
 
 	nRow    := oDfSzDlg:GetDimension( 'oWebEngine', 'LININI' )
 	nColumn := oDfSzDlg:GetDimension( 'oWebEngine', 'COLINI' )
@@ -105,7 +137,7 @@ user function pSqlDev()
 	nHeight := oDfSzDlg:GetDimension( 'oWebEngine', 'YSIZE'  )
 
 	oWebChannel := TWebChannel():New()
-	oWebChannel:bJsToAdvpl := {|self,key,value| jsToAdvpl(self,key,value) }
+	oWebChannel:bJsToAdvpl := {|self,key,value| jsToAdvpl(self,key,value, cCacheFile) }
 	oWebChannel:connect()
 
 	oWebEngine := TWebEngine():New( oDialog, nRow, nColumn, nWidth, nHeight, getUrl(), oWebChannel:nPort )
@@ -113,29 +145,94 @@ user function pSqlDev()
 	oWebEngine:bLoadFinished := { | webengine, url |;
 		WebEngine:runJavaScript( "document.querySelector('textarea').value = `" + cCache + "`" ) }
 
-	aEval( oDialog:aControls, { |item| if( getClassName( item ) == 'TBUTTON', item:disable(), nil ) } )
+	aEval( oDialog:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:disable(), nil ) } )
 
 	ACTIVATE DIALOG oDialog CENTERED
 
 return
 
-static function jsToAdvpl( self, key, value )
+static function jsToAdvpl( self, key, value, cCacheFile )
 
-	Local oJson := jsonObject():New()
+	Local oJson  := jsonObject():New()
+	Local cQuery := ''
 
 	if key == 'activeButtons'
 
-		aEval( oDialog:aControls, { |item| if( getClassName( item ) == 'TBUTTON', item:enable(), nil ) } )
+		aEval( oDialog:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:enable(), nil ) } )
 
-	elseIf key == 'query'
+	elseIf key == 'recordQuery'
 
-		oJson:fromJson(value)
-	
-	elseIf key == 'script'
+		memoWrite( cCacheFile, value )
 
-		oJson:fromJson(value)
+	elseIf key $ 'query/script/parse'
+
+		oJson:fromJson( value )
+		cQuery := oJson['query']
+
+		parseExp( @cQuery, oJson )
+
+		If key == 'query'
+
+		elseIf key == 'script'
+
+		endIf
 
 	endIf
+
+return
+
+static function parseExp( cQuery, oJson )
+
+	Local nX := 0
+
+	for nX := 1 to Len( oJson['advplExpressions'] )
+
+		Eval( &('{||' + StrTran( oJson['advplExpressions'][ nX ], '--?', '' ) + '}') )
+
+	next
+
+	ProcExp( @cQuery, oJson  )
+
+return
+
+static function ProcExp( cQuery, oJson )
+
+	local nX    := 0
+	local cExp  := ''
+	local aList := oJson['embeddedExpressions'] 
+
+
+	for nX := 1 to Len( aList )
+
+		cExp   := aList[ nX ]
+		cExp := StrTran( cExp, '%', '' )
+		cExp := StrTokArr2( cExp, ':', .T. )[2]
+
+		cExp := Eval( &('{||' + cExp + '}') )
+
+		cType := ValType( cExp )
+
+		if cType == 'C'
+
+			cExp := "'" + cExp + "'"
+
+		elseIf cType == 'N'
+
+			cExp := cValToChar( cExp )
+
+		elseIf cType == 'D'
+
+			cExp := "'" + DtoS( cExp ) + "'"
+
+		elseIf cType == 'L'
+
+			cExp := "'" + StrTran( cValToChar( cExp ), '.', '' ) + "'"
+
+		endIf
+
+		cQuery := StrTran( cQuery, aList[ nX ], cExp )
+
+	next nX
 
 return
 

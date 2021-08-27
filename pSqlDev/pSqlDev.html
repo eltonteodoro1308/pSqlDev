@@ -28,7 +28,7 @@
         padding: 1em;
         text-align: center;
         max-width: 15em;
-        margin: 20% auto;
+        margin: 15% auto;
       }
       #editor {
         display: none;
@@ -51,12 +51,19 @@
     <textarea id="editor"> </textarea>
     <script src="twebchannel.js"></script>
     <script>
+      // Atribui ao evento onload do window a função de conexão com o tWebChannel
       window.onload = function () {
         // Fecha conexao entre o AdvPL e o JavaScript via WebSocket
         twebchannel.connect(() => {
+          /*
+           * Após a conexão com o tWebChannel ter sido estabelecida
+           * Esconde a tela de carregamento, exibe o editor e invoca ao advpl
+           * que os botões seja ativados
+           */
           document.querySelector('#editor').style.display = 'block';
           document.querySelector('#waiting').style.display = 'none';
           twebchannel.jsToAdvpl('activeButtons', '');
+          // Imprime no console que o TwebSocket foi conectado.
           console.log('Websocket Connected!');
         });
         twebchannel.advplToJs = function (key, value) {
@@ -65,50 +72,91 @@
           // ----------------------------------------------------------
         };
       };
-      function makeQueryObject(trimComments,commandType) {
+      /**
+       * Função executada pelo advpl para buscar e tratar a query do editor (textarea)
+       * @param {boolean} trimComments - Indica se os comentários serão excluídos
+       * @param {string} commandType - Indica se será processada uma consulta (SELECT) ou um comando SQL (INSERT, UPDATE, DELETE)
+       */
+      function makeQueryObject(trimComments, commandType) {
+        // Cria o objeto com as informações da query
         let queryObject = {};
+        // Variável que referencia ao componente editor (textarea)
         let editor = document.querySelector('textarea');
+        // Variável com a posição inicial do texto selecionado no editor
         let start = editor.selectionStart;
+        // Variável com a posição final do texto selecionado no editor
         let end = editor.selectionEnd;
+        // Variavel com o conteúdo selecinado
         let selection = editor.value.substring(start, end);
+        // Variável com o conteúdo do editor (textarea)
         let value = editor.value;
 
+        // Envia ao advpl commando para gravar a query em disco
+        twebchannel.jsToAdvpl('recordQuery', value);
+
+        /**
+         * Cria a propriedade query com o conteúdo selecionado do editor
+         * ou todo conteúdo de editor caso não tenha sido selecionado nenhum conteúdo
+         */
         queryObject.query = selection ? selection : value;
+
+        // Trata a claúsula (%NOTDEL%)
         queryObject.query = queryObject.query.replace(
           /%NOTDEL%/gi,
           "D_E_L_E_T_=' '"
         );
+
+        // Coleta as expressões advpl
         queryObject.advplExpressions = queryObject.query.match(/--\?.*/gi);
 
+        // Se solicitado exclui os comentários
         if (trimComments) {
           queryObject.query = queryObject.query.replace(
             /(^[ \t]*\*.*$)|(--.*)|(((\/\*)+?[\w\W]*?(\*\/)+))/gim,
             ''
           );
         }
+
+        // Coleta as expressões embarcadas (%EXP:%)
         queryObject.embeddedExpressions =
           queryObject.query.match(/%EXP:[ -ÿ]*%/gi);
+
+        // Coleta as colunas que terão tratamento de tipo (COLUMN)
         queryObject.columns = queryObject.query.match(
           /COLUMN[ \t]+[\w]+[ \t]+AS[ \t]+(DATE|LOGICAL|(NUMERIC[ \t]*\([ \t]*\d+[ \t]*,[ \t]*\d+[ \t]*\)))/gi
         );
+
+        // Exclui as linhas de tratamento de colunas (COLUMN)
         queryObject.query = queryObject.query.replace(
           /COLUMN[ \t]+[\w]+[ \t]+AS[ \t]+(DATE|LOGICAL|(NUMERIC[ \t]*\([ \t]*\d+[ \t]*,[ \t]*\d+[ \t]*\)))/gi,
           ''
         );
+
+        // Coleta as tabelas serão tratadas (%TABLE:%)
         queryObject.tables = queryObject.query.match(
           /%TABLE:[A-Za-z0-9]{3}%/gi
         );
+
+        // Coleta as filiais das tabelas (%XFILIAL:%)
         queryObject.branchs = queryObject.query.match(
           /%XFILIAL:[A-Za-z0-9]{3}%/gi
         );
+
+        // Coleta as ordens a serem aplicadas (%ORDER:%)
         queryObject.order = queryObject.query.match(
           /%ORDER:[A-Za-b0-9]{3}([,][a-bA-B0-9]+)?%/gi
         );
+
+        // Verifica se será aplicada a função changeQuery antes de processar a query
         queryObject.noParser = !!queryObject.query.match(/%NOPARSER%/gi);
+
+        // Exclui a claúsula (%NOPARSER%)
         queryObject.query = queryObject.query.replace(/%NOPARSER%/gi, '');
 
+        // Exclui as linhas em branco
         queryObject.query = queryObject.query.replace(/^[\s\t\n]*/gim, '');
 
+        // Envia para o advpl o obejto com os dados da query e o tipo de processamwnto (select ou não)
         twebchannel.jsToAdvpl(commandType, JSON.stringify(queryObject));
       }
     </script>
