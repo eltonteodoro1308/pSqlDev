@@ -257,11 +257,11 @@ static function parseColumns( aColumn, oJson )
 		cAux := StrTran( cAux, 'COLUMN', '' )
 		cAux := StrTran( cAux, CR, '')
 		cAux := StrTran( cAux, LF, '')
+		aAux   := StrTokArr2( cAux, 'AS' )
+
+		cField := AllTrim( aAux[ 1 ] )
 
 		if 'NUMERIC' $ cAux
-
-			aAux   := StrTokArr2( cAux, 'AS' )
-			cField := AllTrim( aAux[ 1 ] )
 
 			cType := 'N'
 
@@ -277,9 +277,6 @@ static function parseColumns( aColumn, oJson )
 			nPrecision := Val( nPrecision )
 
 		else
-
-			aAux   := StrTokArr2( cAux, 'AS' )
-			cField := AllTrim( aAux[ 1 ] )
 
 			cType := AllTrim( aAux[ 2 ] )
 			cType := SubStr( cType, 1, 1 )
