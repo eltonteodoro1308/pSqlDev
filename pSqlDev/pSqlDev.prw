@@ -1,9 +1,9 @@
 #include 'totvs.ch'
 #include 'sigawin.ch'
+#include 'dwconst.ch'
 //#include 'protheus.ch'
 //#include "stdwin.ch"
 //#include 'prconst.ch'
-//#include 'dwconst.ch'
 
 //TODO Permitir a transposição de colunas em linhas
 //TODO Em parâmetros quantidade de linhas máximas a exibir, se faz o changequery, se tira os comentários na exportação do parser
@@ -153,8 +153,9 @@ return
 
 static function jsToAdvpl( self, key, value, cCacheFile )
 
-	Local oJson  := jsonObject():New()
-	Local cQuery := ''
+	Local oJson   := jsonObject():New()
+	Local cQuery  := ''
+	Local aColumn := {}
 
 	if key == 'activeButtons'
 
@@ -170,10 +171,13 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 		cQuery := oJson['query']
 
 		parseExp( @cQuery, oJson )
+		parseColumns( @aColumn, oJson )
 
 		If key == 'query'
 
 		elseIf key == 'script'
+
+		elseIf key == 'parse'
 
 		endIf
 
@@ -199,7 +203,7 @@ static function ProcExp( cQuery, oJson )
 
 	local nX    := 0
 	local cExp  := ''
-	local aList := oJson['embeddedExpressions'] 
+	local aList := oJson['embeddedExpressions']
 
 
 	for nX := 1 to Len( aList )
@@ -231,6 +235,61 @@ static function ProcExp( cQuery, oJson )
 		endIf
 
 		cQuery := StrTran( cQuery, aList[ nX ], cExp )
+
+	next nX
+
+return
+
+static function parseColumns( aColumn, oJson )
+
+	Local aList      := oJson['columns']
+	Local nX         := 0
+	Local cAux       := ''
+	Local aAux       := {}
+	Local cField     := ''
+	Local cType      := ''
+	Local nSize      := 0
+	Local nPrecision := 0
+
+	for nX := 1 to Len( aList )
+
+		cAux := Upper( aList[nX] )
+		cAux := StrTran( cAux, 'COLUMN', '' )
+		cAux := StrTran( cAux, CR, '')
+		cAux := StrTran( cAux, LF, '')
+
+		if 'NUMERIC' $ cAux
+
+			aAux   := StrTokArr2( cAux, 'AS' )
+			cField := AllTrim( aAux[ 1 ] )
+
+			cType := 'N'
+
+			nSize := aAux[ 2 ]
+			nSize := StrTokArr2( nSize, '(' )[ 2 ]
+			nSize := StrTokArr2( nSize, ',' )[ 1 ]
+			nSize := Val( nSize )
+
+			nPrecision := aAux[ 2 ]
+			nPrecision := StrTokArr2( nPrecision, '(' )[ 2 ]
+			nPrecision := StrTokArr2( nPrecision, ',' )[ 2 ]
+			nPrecision := StrTran( nPrecision, ')', '' )
+			nPrecision := Val( nPrecision )
+
+		else
+
+			aAux   := StrTokArr2( cAux, 'AS' )
+			cField := AllTrim( aAux[ 1 ] )
+
+			cType := AllTrim( aAux[ 2 ] )
+			cType := SubStr( cType, 1, 1 )
+
+			nSize := 0
+			nPrecision := 0
+
+		endIf
+
+		aAdd( aColumn, { cField, cType, nSize, nPrecision } )
 
 	next nX
 
