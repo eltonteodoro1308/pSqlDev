@@ -128,7 +128,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oChkTransp', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oChkTransp', 'YSIZE'  )
 
-	@ nRow+5, nColumn+10 CHECKBOX oChkTransp VAR lChkTransp PROMPT "TRANSPÕE A CONSULTA" SIZE nWidth, nHeight OF oDialog FONT oFontBtn PIXEL
+	@ nRow+5, nColumn+10 CHECKBOX oChkTransp VAR lChkTransp PROMPT "TRANSPOR A CONSULTA" SIZE nWidth, nHeight OF oDialog FONT oFontBtn PIXEL
 	oChkTransp:cToolTip := "Faz a transposição da consulta."
 
 	nRow    := oDfSzDlg:GetDimension( 'oWebEngine', 'LININI' )
@@ -156,6 +156,11 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 	Local oJson   := jsonObject():New()
 	Local cQuery  := ''
 	Local aColumn := {}
+	Local cAlias  := ''
+	Local nStatus := 0
+	Local cErro   := ''
+	Local bError  := ErrorBlock( { | oErro | cErro := oErro:Description } )
+
 
 	if key == 'activeButtons'
 
@@ -172,16 +177,145 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 		parseExp( @cQuery, oJson )
 		parseColumns( @aColumn, oJson )
+		parseTable( @cQuery, oJson )
+		parseBranch( @cQuery, oJson )
+		parseOrder( @cQuery, oJson )
 
 		If key == 'query'
 
+			MsgRun ( 'Banco de Dados Processando a Query ...', 'Aguarde ...', { | | cAlias := MpSysOpenQuery( cQuery ) } )
+
+			if empty( cErro )
+
+				showResult( cAlias )
+
+			else
+
+				AutoGrLog( cErro )
+				MostraErro()
+
+			endIf
+
 		elseIf key == 'script'
 
+			MsgRun ( 'Banco de Dados Processando a Script ...', 'Aguarde ...', { | | nStatus := TCSqlExec( cQuery ) } )
+
+			If nStatus < 0
+
+				AutoGrLog( TCSQLError() )
+				MostraErro()
+
+			Else
+
+				ApMsgInfo( 'Script Processado Com Sucesso.', 'Atenção !!!' )
+
+			EndIf
+
 		elseIf key == 'parse'
+
+			AutoGrLog( cQuery )
+			MostraErro()
 
 		endIf
 
 	endIf
+
+	ErrorBlock( bError )
+
+return
+
+static function showResult( cAlias )
+
+	Local oDlg      := nil
+	Local oDfSzDlg  := FwDefSize():New( .F. )
+	Local oDfSzBtn  := FwDefSize():New( .F. )
+	Local oBtnPrint := nil
+	Local oBtnClose := nil
+	Local oFontBtn  := TFont():New( 'Consolas',,-12,,.T. )
+	Local oFontBrw  := TFont():New( 'Consolas',,-14,,.F. )
+	Local oBrowse   := nil
+	Local nX        := 0
+	Local cField    := ''
+
+	oDfSzDlg:AddObject ( 'oButtons'  , 000, 015, .T., .F. )
+	oDfSzDlg:AddObject ( 'oBrGetDDB' , 000, 000, .T., .T. )
+	oDfSzDlg:Process()
+
+	oDfSzBtn:AddObject ( 'oBtnPrint' , 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtnClose' , 055, 015, .F., .F. )
+	oDfSzBtn:lLateral := .T.
+	oDfSzBtn:Process()
+
+	nTop    := oDfSzBtn:aWindSize[ 1 ]
+	nLeft   := oDfSzBtn:aWindSize[ 2 ]
+	nBottom := oDfSzBtn:aWindSize[ 3 ]
+	nRight  := oDfSzBtn:aWindSize[ 4 ]
+
+	DEFINE DIALOG oDlg TITLE cAlias FROM nTop, nLeft TO nBottom, nRight PIXEL
+
+	nRow    := oDfSzBtn:GetDimension( 'oBtnPrint', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oBtnPrint', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oBtnPrint', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oBtnPrint', 'YSIZE'  )
+
+	@ nRow, nColumn BUTTON oBtnPrint PROMPT 'IMPRIMIR' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION alert('IMPRIMIR') PIXEL
+	oBtnPrint:cToolTip := "Imprimir resultado da query."
+
+	nRow    := oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oBtnClose', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  )
+
+	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION oDlg:End() PIXEL
+	oBtnClose:cToolTip := "Fecha o programa."
+
+	nRow    := oDfSzDlg:GetDimension( 'oBrGetDDB', 'LININI' )
+	nColumn := oDfSzDlg:GetDimension( 'oBrGetDDB', 'COLINI' )
+	nWidth  := oDfSzDlg:GetDimension( 'oBrGetDDB', 'XSIZE'  )
+	nHeight := oDfSzDlg:GetDimension( 'oBrGetDDB', 'YSIZE'  )
+
+	oBrowse := BrGetDDB():new(;
+    /* nRow       */     nRow,;
+    /* nCol       */  nColumn,;
+    /* nWidth     */   nWidth,;
+    /* nHeight    */  nHeight,;
+    /* bLine      */         ,;
+    /* aHeaders   */         ,;
+    /* aColSizes  */         ,;
+    /* oWnd       */     oDlg,;
+    /* cField     */         ,;
+    /* uVal1      */         ,;
+    /* uVal2      */         ,;
+    /* bChange    */         ,;
+    /* bLDblClick */         ,;
+    /* bRClick    */         ,;
+    /* oFont      */ oFontBrw,;
+    /* oCursor    */         ,;
+    /* nClrFore   */         ,;
+    /* nClrBack   */         ,;
+    /* cMsg       */         ,;
+    /* uParam1    */         ,;
+    /* cAlias     */   cAlias,;
+    /* lPixel     */      .T.,;
+    /* bWhen      */         ,;
+    /* uParam2    */         ,;
+    /* bValid     */         ,;
+    /* uParam3    */         ,;
+    /* uParam4    */          )
+
+	( cAlias )->( DbGoTop() )
+
+	For nX := 1 To ( cAlias )->( FCount() )
+
+		cField := ( cAlias )->( FieldName( nX ) )
+
+		oBrowse:addColumn( TCColumn():new( cField, &('{ || ( cAlias )->' + cField + ' }'),,,, 'LEFT',, .F., .F.,,,, .F. ) )
+
+	Next
+
+	ACTIVATE DIALOG oDlg CENTERED
+
+	( cAlias )->( DbCloseArea() )
 
 return
 
@@ -189,13 +323,17 @@ static function parseExp( cQuery, oJson )
 
 	Local nX := 0
 
-	for nX := 1 to Len( oJson['advplExpressions'] )
+	if ! Empty( oJson['advplExpressions']  )
 
-		Eval( &('{||' + StrTran( oJson['advplExpressions'][ nX ], '--?', '' ) + '}') )
+		for nX := 1 to Len( oJson['advplExpressions'] )
 
-	next
+			Eval( &('{||' + StrTran( oJson['advplExpressions'][ nX ], '--?', '' ) + '}') )
 
-	ProcExp( @cQuery, oJson  )
+		next
+
+		ProcExp( @cQuery, oJson  )
+
+	endIf
 
 return
 
@@ -206,37 +344,41 @@ static function ProcExp( cQuery, oJson )
 	local aList := oJson['embeddedExpressions']
 
 
-	for nX := 1 to Len( aList )
+	if ! Empty( aList  )
 
-		cExp   := aList[ nX ]
-		cExp := StrTran( cExp, '%', '' )
-		cExp := StrTokArr2( cExp, ':', .T. )[2]
+		for nX := 1 to Len( aList )
 
-		cExp := Eval( &('{||' + cExp + '}') )
+			cExp   := aList[ nX ]
+			cExp := StrTran( cExp, '%', '' )
+			cExp := StrTokArr2( cExp, ':', .T. )[2]
 
-		cType := ValType( cExp )
+			cExp := Eval( &('{||' + cExp + '}') )
 
-		if cType == 'C'
+			cType := ValType( cExp )
 
-			cExp := "'" + cExp + "'"
+			if cType == 'C'
 
-		elseIf cType == 'N'
+				cExp := "'" + cExp + "'"
 
-			cExp := cValToChar( cExp )
+			elseIf cType == 'N'
 
-		elseIf cType == 'D'
+				cExp := cValToChar( cExp )
 
-			cExp := "'" + DtoS( cExp ) + "'"
+			elseIf cType == 'D'
 
-		elseIf cType == 'L'
+				cExp := "'" + DtoS( cExp ) + "'"
 
-			cExp := "'" + StrTran( cValToChar( cExp ), '.', '' ) + "'"
+			elseIf cType == 'L'
 
-		endIf
+				cExp := "'" + StrTran( cValToChar( cExp ), '.', '' ) + "'"
 
-		cQuery := StrTran( cQuery, aList[ nX ], cExp )
+			endIf
 
-	next nX
+			cQuery := StrTran( cQuery, aList[ nX ], cExp )
+
+		next nX
+
+	endIf
 
 return
 
@@ -251,44 +393,152 @@ static function parseColumns( aColumn, oJson )
 	Local nSize      := 0
 	Local nPrecision := 0
 
-	for nX := 1 to Len( aList )
+	if ! Empty( aList  )
 
-		cAux := Upper( aList[nX] )
-		cAux := StrTran( cAux, 'COLUMN', '' )
-		cAux := StrTran( cAux, CR, '')
-		cAux := StrTran( cAux, LF, '')
-		aAux   := StrTokArr2( cAux, 'AS' )
+		for nX := 1 to Len( aList )
 
-		cField := AllTrim( aAux[ 1 ] )
+			cAux := Upper( aList[nX] )
+			cAux := StrTran( cAux, 'COLUMN', '' )
+			cAux := StrTran( cAux, CR, '')
+			cAux := StrTran( cAux, LF, '')
+			aAux   := StrTokArr2( cAux, 'AS' )
 
-		if 'NUMERIC' $ cAux
+			cField := AllTrim( aAux[ 1 ] )
 
-			cType := 'N'
+			if 'NUMERIC' $ cAux
 
-			nSize := aAux[ 2 ]
-			nSize := StrTokArr2( nSize, '(' )[ 2 ]
-			nSize := StrTokArr2( nSize, ',' )[ 1 ]
-			nSize := Val( nSize )
+				cType := 'N'
 
-			nPrecision := aAux[ 2 ]
-			nPrecision := StrTokArr2( nPrecision, '(' )[ 2 ]
-			nPrecision := StrTokArr2( nPrecision, ',' )[ 2 ]
-			nPrecision := StrTran( nPrecision, ')', '' )
-			nPrecision := Val( nPrecision )
+				nSize := aAux[ 2 ]
+				nSize := StrTokArr2( nSize, '(' )[ 2 ]
+				nSize := StrTokArr2( nSize, ',' )[ 1 ]
+				nSize := Val( nSize )
 
-		else
+				nPrecision := aAux[ 2 ]
+				nPrecision := StrTokArr2( nPrecision, '(' )[ 2 ]
+				nPrecision := StrTokArr2( nPrecision, ',' )[ 2 ]
+				nPrecision := StrTran( nPrecision, ')', '' )
+				nPrecision := Val( nPrecision )
 
-			cType := AllTrim( aAux[ 2 ] )
-			cType := SubStr( cType, 1, 1 )
+			else
 
-			nSize := 0
-			nPrecision := 0
+				cType := AllTrim( aAux[ 2 ] )
+				cType := SubStr( cType, 1, 1 )
 
-		endIf
+				nSize := 0
+				nPrecision := 0
 
-		aAdd( aColumn, { cField, cType, nSize, nPrecision } )
+			endIf
 
-	next nX
+			aAdd( aColumn, { cField, cType, nSize, nPrecision } )
+
+		next nX
+
+	endIf
+
+return
+
+static function parseTable( cQuery, oJson )
+
+	Local nX     := 0
+	Local aList  := oJson['tables']
+	Local cTable := ''
+
+	if ! Empty( aList  )
+
+		for nX := 1 to Len( aList )
+
+			cTable := aList[ nX ]
+			cTable := StrTran( cTable, '%', '' )
+			cTable := StrTokArr2( cTable, ':', .T. )[2]
+			cTable := RetSqlName( cTable )
+
+			cQuery := StrTran( cQuery, aList[ nX ], cTable )
+
+		next
+
+	endIf
+
+return
+
+static function parseBranch( cQuery, oJson )
+
+	Local nX      := 0
+	Local aList   := oJson['branchs']
+	Local cBranch := ''
+
+	if ! Empty( aList  )
+
+		for nX := 1 to Len( aList )
+
+			cBranch := aList[ nX ]
+			cBranch := StrTran( cBranch, '%', '' )
+			cBranch := StrTokArr2( cBranch, ':', .T. )[2]
+			cBranch := xFilial( cBranch )
+			cBranch := "'" + cBranch + "'"
+
+			cQuery := StrTran( cQuery, aList[ nX ], cBranch )
+
+		next
+
+	endIf
+
+return
+
+static function parseOrder( cQuery, oJson )
+
+	Local aList    := oJson['order']
+	Local nX       := 0
+	Local nY       := 0
+	Local cOrder   := ''
+	Local aOrder   := {}
+	Local aAux     := {}
+	Local cAux     := ''
+	Local lIsDigit := .T.
+
+	if ! Empty( aList  )
+
+		for nX := 1 to Len( aList )
+
+			cOrder := aList[ nX ]
+			cOrder := StrTran( cOrder, '%', '' )
+			cOrder := StrTokArr2( cOrder, ':', .T. )[2]
+
+			aOrder := StrTokArr2( cOrder, ',', .T. )
+
+			DbSelectArea( aOrder[1] )
+
+			if len( aOrder ) == 2
+
+				cAux := 'ABCDEFGHIJKLMNOPQRSTUVXWYZ'
+				aAux := array( Len( cAux ) )
+				nY   := 0
+				aEval( aAux, { || ++nY, aAux[nY] := SubStr( cAux, nY, 1 ) } )
+
+				aEval( aAux, { | i | if( i $ Upper( aOrder[ 2 ] ), lIsDigit := .F., nil) } )
+
+				if lIsDigit
+
+					cOrder := SqlOrder( ( aOrder[1] )->( IndexKey( Val( aOrder[2] ) ) ) )
+
+				else
+
+					cOrder := SqlOrder( ( aOrder[1] )->( DBNickIndexKey( aOrder[2] ) ) )
+
+				endIf
+
+			else
+
+				cOrder := SqlOrder( ( aOrder[1] )->( IndexKey( 1 ) ) )
+
+			endIf
+
+
+			cQuery := StrTran( cQuery, aList[ nX ], cOrder )
+
+		next nX
+
+	endIf
 
 return
 

@@ -17,6 +17,16 @@
 			"args": [],
 			"label": "sigacfg",
 			"description": ""
+		},
+		{
+			"args": [],
+			"label": "u_psqldev",
+			"description": ""
+		},
+		{
+			"args": [],
+			"label": "u_tststrarr",
+			"description": ""
 		}
 	],
 	"lastProgramExecuted": "sigacfg"

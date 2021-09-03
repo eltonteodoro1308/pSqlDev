@@ -156,7 +156,7 @@
         // Exclui as linhas em branco
         queryObject.query = queryObject.query.replace(/^[\s\t\n]*/gim, '');
 
-        // Envia para o advpl o obejto com os dados da query e o tipo de processamwnto (select ou não)
+        // Envia para o advpl o objeto com os dados da query e o tipo de processamwnto (select ou não)
         twebchannel.jsToAdvpl(commandType, JSON.stringify(queryObject));
       }
     </script>
