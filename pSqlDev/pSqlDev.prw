@@ -11,7 +11,8 @@
 
 user function pSqlDev()
 
-	Static oDialog   := nil
+	Static oDlgMain   := nil
+	Static oFontBtn   := TFont():New( 'Consolas',,-12,,.T. )
 
 	Local cCacheFile  := 'pSqlDev.sql'
 	Local cCache      := memoRead( cCacheFile )
@@ -30,7 +31,6 @@ user function pSqlDev()
 	Local oWebChannel := nil
 	Local oWebEngine  := nil
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
-	Local oFontBtn    := TFont():New( 'Consolas',,-12,,.T. )
 
 	Local nTop    := 0
 	Local nBottom := 0
@@ -62,14 +62,14 @@ user function pSqlDev()
 	nBottom := oDfSzBtn:aWindSize[ 3 ]
 	nRight  := oDfSzBtn:aWindSize[ 4 ]
 
-	DEFINE MSDIALOG oDialog TITLE cTitle FROM nTop, nLeft TO nBottom, nRight PIXEL
+	DEFINE MSDIALOG oDlgMain TITLE cTitle FROM nTop, nLeft TO nBottom, nRight PIXEL
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnQuery', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' )
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnQuery PROMPT 'QUERY <F5>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn;
+	@ nRow, nColumn BUTTON oBtnQuery PROMPT 'QUERY <F5>' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn;
 		ACTION oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' ) PIXEL
 	oBtnQuery:cToolTip := "Executa uma query de consulta ao banco de dados."
 
@@ -78,7 +78,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnScript PROMPT 'SCRIPT <F6>' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION;
+	@ nRow, nColumn BUTTON oBtnScript PROMPT 'SCRIPT <F6>' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION;
 		oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) PIXEL
 	oBtnScript:cToolTip := "Executa um script sql no banco de dados."
 
@@ -87,7 +87,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnParse', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnParse', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnParse PROMPT 'PARSE' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION;
+	@ nRow, nColumn BUTTON oBtnParse PROMPT 'PARSE' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION;
 		oWebEngine:runJavaScript( 'makeQueryObject(' + IF( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) PIXEL
 	oBtnParse:cToolTip := "Faz o parse da query, tratando e resolvendo o embedded sql."
 
@@ -96,7 +96,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnOpen', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnOpen', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnOpen PROMPT 'ABRIR' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION alert('ABRIR') PIXEL
+	@ nRow, nColumn BUTTON oBtnOpen PROMPT 'ABRIR' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION alert('ABRIR') PIXEL
 	oBtnOpen:cToolTip := "Abre um arquivo salvo."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnSave', 'LININI' )
@@ -104,7 +104,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnSave', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnSave', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnSave PROMPT 'SALVAR' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION alert('SALVAR') PIXEL
+	@ nRow, nColumn BUTTON oBtnSave PROMPT 'SALVAR' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION alert('SALVAR') PIXEL
 	oBtnSave:cToolTip := "Salvo a consulta."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' )
@@ -112,7 +112,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oBtnClose', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDialog FONT oFontBtn ACTION oDialog:End() PIXEL
+	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION oDlgMain:End() PIXEL
 	oBtnClose:cToolTip := "Fecha o programa."
 
 	nRow    := oDfSzBtn:GetDimension( 'oChkCommnt', 'LININI' )
@@ -120,7 +120,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oChkCommnt', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oChkCommnt', 'YSIZE'  )
 
-	@ nRow+5, nColumn+5 CHECKBOX oChkCommnt VAR lChkCommnt PROMPT "PARSE SEM COMENTÁRIOS" SIZE nWidth, nHeight OF oDialog FONT oFontBtn PIXEL
+	@ nRow+5, nColumn+5 CHECKBOX oChkCommnt VAR lChkCommnt PROMPT "PARSE SEM COMENTÁRIOS" SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn PIXEL
 	oChkCommnt:cToolTip := "No parser da query exclui os comentários."
 
 	nRow    := oDfSzBtn:GetDimension( 'oChkTransp', 'LININI' )
@@ -128,7 +128,7 @@ user function pSqlDev()
 	nWidth  := oDfSzBtn:GetDimension( 'oChkTransp', 'XSIZE'  )
 	nHeight := oDfSzBtn:GetDimension( 'oChkTransp', 'YSIZE'  )
 
-	@ nRow+5, nColumn+10 CHECKBOX oChkTransp VAR lChkTransp PROMPT "TRANSPOR A CONSULTA" SIZE nWidth, nHeight OF oDialog FONT oFontBtn PIXEL
+	@ nRow+5, nColumn+10 CHECKBOX oChkTransp VAR lChkTransp PROMPT "TRANSPOR A CONSULTA" SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn PIXEL
 	oChkTransp:cToolTip := "Faz a transposição da consulta."
 
 	nRow    := oDfSzDlg:GetDimension( 'oWebEngine', 'LININI' )
@@ -140,14 +140,14 @@ user function pSqlDev()
 	oWebChannel:bJsToAdvpl := {|self,key,value| jsToAdvpl(self,key,value, cCacheFile) }
 	oWebChannel:connect()
 
-	oWebEngine := TWebEngine():New( oDialog, nRow, nColumn, nWidth, nHeight, getUrl(), oWebChannel:nPort )
+	oWebEngine := TWebEngine():New( oDlgMain, nRow, nColumn, nWidth, nHeight, getUrl(), oWebChannel:nPort )
 
 	oWebEngine:bLoadFinished := { | webengine, url |;
 		WebEngine:runJavaScript( "document.querySelector('textarea').value = `" + cCache + "`" ) }
 
-	aEval( oDialog:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:disable(), nil ) } )
+	aEval( oDlgMain:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:disable(), nil ) } )
 
-	ACTIVATE DIALOG oDialog CENTERED
+	ACTIVATE DIALOG oDlgMain CENTERED
 
 return
 
@@ -164,7 +164,7 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 	if key == 'activeButtons'
 
-		aEval( oDialog:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:enable(), nil ) } )
+		aEval( oDlgMain:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:enable(), nil ) } )
 
 	elseIf key == 'recordQuery'
 
@@ -226,42 +226,55 @@ return
 
 static function showResult( cAlias )
 
-	Local oDlg       := nil
-	Local oDfSzDlg   := FwDefSize():New( .F. )
-	Local oDfSzBtn   := FwDefSize():New( .F. )
-	Local oBtnPrint  := nil
-	Local oBtnClose  := nil
-	Local oFontBtn   := TFont():New( 'Consolas',,-12,,.T. )
-	Local oFontBrw   := TFont():New( 'Consolas',,-14,,.F. )
-	Local oBrowse    := nil
-	Local nX         := 0
-	Local cField     := ''
-	Local oTempTable := FWTemporaryTable():New()
-	Local aFields    := {}
+	Local oDfSzDlg  := FwDefSize():New( .F. )
+	Local oDfSzBtn  := FwDefSize():New( .F. )
+	Local oDlg      := Nil
+	Local oBtn2Exc  := Nil
+	Local oBtnClose := Nil
+	Local oGet      := Nil
+	Local cGet      := ''
+	Local oBrowse   := Nil
+	Local aAux      := {}
+	Local bLine     := Nil
+	Local nZ        := 0
+	Local nX        := 0
 
-	oDfSzDlg:AddObject ( 'oButtons'  , 000, 015, .T., .F. )
-	oDfSzDlg:AddObject ( 'oBrGetDDB' , 000, 000, .T., .T. )
+	Local nTop      := 0
+	Local nBottom   := 0
+	Local nLeft     := 0
+	Local nRight    := 0
+
+	Local nRow      := 0
+	Local nColumn   := 0
+	Local nWidth    := 0
+	Local nHeight   := 0
+
+	Private aHeaders  := {}
+	Private aBrowse   := {}
+
+	oDfSzDlg:AddObject ( 'oButtons', 000, 015, .T., .F. )
+	oDfSzDlg:AddObject ( 'oBrowse' , 000, 000, .T., .T. )
 	oDfSzDlg:Process()
 
-	oDfSzBtn:AddObject ( 'oBtnPrint' , 055, 015, .F., .F. )
-	oDfSzBtn:AddObject ( 'oBtnClose' , 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtn2Exc' , 050, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtnClose', 050, 015, .F., .F. )
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
 
-	nTop    := oDfSzBtn:aWindSize[ 1 ]
-	nLeft   := oDfSzBtn:aWindSize[ 2 ]
-	nBottom := oDfSzBtn:aWindSize[ 3 ]
-	nRight  := oDfSzBtn:aWindSize[ 4 ]
+	nTop    := oDfSzDlg:aWindSize[ 1 ]
+	nBottom := oDfSzDlg:aWindSize[ 2 ]
+	nLeft   := oDfSzDlg:aWindSize[ 3 ]
+	nRight  := oDfSzDlg:aWindSize[ 4 ]
 
-	DEFINE DIALOG oDlg TITLE oTempTable:GetAlias() FROM nTop, nLeft TO nBottom, nRight PIXEL
+	DEFINE MSDIALOG oDlg TITLE cAlias FROM nTop, nBottom  TO nLeft, nRight PIXEL
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnPrint', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnPrint', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnPrint', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnPrint', 'YSIZE'  )
+	nRow    := oDfSzBtn:GetDimension( 'oBtn2Exc', 'LININI' )
+	nColumn := oDfSzBtn:GetDimension( 'oBtn2Exc', 'COLINI' )
+	nWidth  := oDfSzBtn:GetDimension( 'oBtn2Exc', 'XSIZE'  )
+	nHeight := oDfSzBtn:GetDimension( 'oBtn2Exc', 'YSIZE'  )
 
-	@ nRow, nColumn BUTTON oBtnPrint PROMPT 'IMPRIMIR' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION alert('IMPRIMIR') PIXEL
-	oBtnPrint:cToolTip := "Imprimir resultado da query."
+	@ nRow, nColumn BUTTON oBtn2Exc PROMPT 'EXCEL' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION alert('EXCEL') PIXEL
+	oBtn2Exc:cToolTip := "Exporta para Excel."
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' )
@@ -271,53 +284,7 @@ static function showResult( cAlias )
 	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION oDlg:End() PIXEL
 	oBtnClose:cToolTip := "Fecha o programa."
 
-	nRow    := oDfSzDlg:GetDimension( 'oBrGetDDB', 'LININI' )
-	nColumn := oDfSzDlg:GetDimension( 'oBrGetDDB', 'COLINI' )
-	nWidth  := oDfSzDlg:GetDimension( 'oBrGetDDB', 'XSIZE'  )
-	nHeight := oDfSzDlg:GetDimension( 'oBrGetDDB', 'YSIZE'  )
-
-	oBrowse := BrGetDDB():new(;
-    /* nRow       */                    nRow,;
-    /* nCol       */                 nColumn,;
-    /* nWidth     */                  nWidth,;
-    /* nHeight    */                 nHeight,;
-    /* bLine      */                        ,;
-    /* aHeaders   */                        ,;
-    /* aColSizes  */                        ,;
-    /* oWnd       */                    oDlg,;
-    /* cField     */                        ,;
-    /* uVal1      */                        ,;
-    /* uVal2      */                        ,;
-    /* bChange    */                        ,;
-    /* bLDblClick */                        ,;
-    /* bRClick    */                        ,;
-    /* oFont      */                oFontBrw,;
-    /* oCursor    */                        ,;
-    /* nClrFore   */                        ,;
-    /* nClrBack   */                        ,;
-    /* cMsg       */                        ,;
-    /* uParam1    */                        ,;
-    /* cAlias     */   oTempTable:GetAlias(),;
-    /* lPixel     */                     .T.,;
-    /* bWhen      */                        ,;
-    /* uParam2    */                        ,;
-    /* bValid     */                        ,;
-    /* uParam3    */                        ,;
-    /* uParam4    */                         )
-
-	( cAlias )->( DbGoTop() )
-
-	For nX := 1 To ( cAlias )->( FCount() )
-
-		cField := ( cAlias )->( FieldName( nX ) )
-
-		oBrowse:addColumn( TCColumn():new( cField, &('{ || ( cAlias )->' + cField + ' }'),,,, 'LEFT',, .F., .F.,,,, .F. ) )
-
-	Next
-
-	ACTIVATE DIALOG oDlg CENTERED
-
-	( cAlias )->( DbCloseArea() )
+	ACTIVATE MSDIALOG oDlg CENTERED
 
 return
 
