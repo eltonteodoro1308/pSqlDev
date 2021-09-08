@@ -198,7 +198,7 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 		elseIf key == 'script'
 
-			MsgRun ( 'Banco de Dados Processando a Script ...', 'Aguarde ...', { | | nStatus := TCSqlExec( cQuery ) } )
+			MsgRun ( 'Banco de Dados Processando o Script ...', 'Aguarde ...', { | | nStatus := TCSqlExec( cQuery ) } )
 
 			If nStatus < 0
 
@@ -226,16 +226,18 @@ return
 
 static function showResult( cAlias )
 
-	Local oDlg      := nil
-	Local oDfSzDlg  := FwDefSize():New( .F. )
-	Local oDfSzBtn  := FwDefSize():New( .F. )
-	Local oBtnPrint := nil
-	Local oBtnClose := nil
-	Local oFontBtn  := TFont():New( 'Consolas',,-12,,.T. )
-	Local oFontBrw  := TFont():New( 'Consolas',,-14,,.F. )
-	Local oBrowse   := nil
-	Local nX        := 0
-	Local cField    := ''
+	Local oDlg       := nil
+	Local oDfSzDlg   := FwDefSize():New( .F. )
+	Local oDfSzBtn   := FwDefSize():New( .F. )
+	Local oBtnPrint  := nil
+	Local oBtnClose  := nil
+	Local oFontBtn   := TFont():New( 'Consolas',,-12,,.T. )
+	Local oFontBrw   := TFont():New( 'Consolas',,-14,,.F. )
+	Local oBrowse    := nil
+	Local nX         := 0
+	Local cField     := ''
+	Local oTempTable := FWTemporaryTable():New()
+	Local aFields    := {}
 
 	oDfSzDlg:AddObject ( 'oButtons'  , 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oBrGetDDB' , 000, 000, .T., .T. )
@@ -251,7 +253,7 @@ static function showResult( cAlias )
 	nBottom := oDfSzBtn:aWindSize[ 3 ]
 	nRight  := oDfSzBtn:aWindSize[ 4 ]
 
-	DEFINE DIALOG oDlg TITLE cAlias FROM nTop, nLeft TO nBottom, nRight PIXEL
+	DEFINE DIALOG oDlg TITLE oTempTable:GetAlias() FROM nTop, nLeft TO nBottom, nRight PIXEL
 
 	nRow    := oDfSzBtn:GetDimension( 'oBtnPrint', 'LININI' )
 	nColumn := oDfSzBtn:GetDimension( 'oBtnPrint', 'COLINI' )
@@ -275,33 +277,33 @@ static function showResult( cAlias )
 	nHeight := oDfSzDlg:GetDimension( 'oBrGetDDB', 'YSIZE'  )
 
 	oBrowse := BrGetDDB():new(;
-    /* nRow       */     nRow,;
-    /* nCol       */  nColumn,;
-    /* nWidth     */   nWidth,;
-    /* nHeight    */  nHeight,;
-    /* bLine      */         ,;
-    /* aHeaders   */         ,;
-    /* aColSizes  */         ,;
-    /* oWnd       */     oDlg,;
-    /* cField     */         ,;
-    /* uVal1      */         ,;
-    /* uVal2      */         ,;
-    /* bChange    */         ,;
-    /* bLDblClick */         ,;
-    /* bRClick    */         ,;
-    /* oFont      */ oFontBrw,;
-    /* oCursor    */         ,;
-    /* nClrFore   */         ,;
-    /* nClrBack   */         ,;
-    /* cMsg       */         ,;
-    /* uParam1    */         ,;
-    /* cAlias     */   cAlias,;
-    /* lPixel     */      .T.,;
-    /* bWhen      */         ,;
-    /* uParam2    */         ,;
-    /* bValid     */         ,;
-    /* uParam3    */         ,;
-    /* uParam4    */          )
+    /* nRow       */                    nRow,;
+    /* nCol       */                 nColumn,;
+    /* nWidth     */                  nWidth,;
+    /* nHeight    */                 nHeight,;
+    /* bLine      */                        ,;
+    /* aHeaders   */                        ,;
+    /* aColSizes  */                        ,;
+    /* oWnd       */                    oDlg,;
+    /* cField     */                        ,;
+    /* uVal1      */                        ,;
+    /* uVal2      */                        ,;
+    /* bChange    */                        ,;
+    /* bLDblClick */                        ,;
+    /* bRClick    */                        ,;
+    /* oFont      */                oFontBrw,;
+    /* oCursor    */                        ,;
+    /* nClrFore   */                        ,;
+    /* nClrBack   */                        ,;
+    /* cMsg       */                        ,;
+    /* uParam1    */                        ,;
+    /* cAlias     */   oTempTable:GetAlias(),;
+    /* lPixel     */                     .T.,;
+    /* bWhen      */                        ,;
+    /* uParam2    */                        ,;
+    /* bValid     */                        ,;
+    /* uParam3    */                        ,;
+    /* uParam4    */                         )
 
 	( cAlias )->( DbGoTop() )
 
