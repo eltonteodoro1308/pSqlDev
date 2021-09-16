@@ -5,10 +5,6 @@
 //#include "stdwin.ch"
 //#include 'prconst.ch'
 
-//TODO Permitir a transposição de colunas em linhas
-//TODO Em parâmetros quantidade de linhas máximas a exibir, se faz o changequery, se tira os comentários na exportação do parser
-//TODO Para script sql considerar ; para processar mais de um commando de uma vez
-
 user function pSqlDev()
 
 	Static oDlgMain   := nil
@@ -26,8 +22,6 @@ user function pSqlDev()
 	Local oBtnClose   := nil
 	Local oChkCommnt  := nil
 	Local lChkCommnt  := .T.
-	Local oChkTransp  := nil
-	Local lChkTransp  := .F.
 	Local oWebChannel := nil
 	Local oWebEngine  := nil
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
@@ -53,7 +47,6 @@ user function pSqlDev()
 	oDfSzBtn:AddObject ( 'oBtnSave'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnClose' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oChkCommnt', 080, 015, .F., .F. )
-	oDfSzBtn:AddObject ( 'oChkTransp', 080, 015, .F., .F. )
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
 
@@ -123,14 +116,6 @@ user function pSqlDev()
 	@ nRow+5, nColumn+5 CHECKBOX oChkCommnt VAR lChkCommnt PROMPT "PARSE SEM COMENTÁRIOS" SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn PIXEL
 	oChkCommnt:cToolTip := "No parser da query exclui os comentários."
 
-	nRow    := oDfSzBtn:GetDimension( 'oChkTransp', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oChkTransp', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oChkTransp', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oChkTransp', 'YSIZE'  )
-
-	@ nRow+5, nColumn+10 CHECKBOX oChkTransp VAR lChkTransp PROMPT "TRANSPOR A CONSULTA" SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn PIXEL
-	oChkTransp:cToolTip := "Faz a transposição da consulta."
-
 	nRow    := oDfSzDlg:GetDimension( 'oWebEngine', 'LININI' )
 	nColumn := oDfSzDlg:GetDimension( 'oWebEngine', 'COLINI' )
 	nWidth  := oDfSzDlg:GetDimension( 'oWebEngine', 'XSIZE'  )
@@ -189,6 +174,8 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 				showResult( cAlias )
 
+				( cAlias )->( DbCloseArea() )
+
 			else
 
 				AutoGrLog( cErro )
@@ -228,16 +215,14 @@ static function showResult( cAlias )
 
 	Local oDfSzDlg  := FwDefSize():New( .F. )
 	Local oDfSzBtn  := FwDefSize():New( .F. )
+	Local oFontBtn  := TFont():New( 'Consolas',,-12,,.T. )
 	Local oDlg      := Nil
 	Local oBtn2Exc  := Nil
 	Local oBtnClose := Nil
-	Local oGet      := Nil
-	Local cGet      := ''
 	Local oBrowse   := Nil
-	Local aAux      := {}
-	Local bLine     := Nil
-	Local nZ        := 0
-	Local nX        := 0
+	Local aHeaders  := {}
+	Local aLinesBrw := {}
+	Local bLinesBrw := nil
 
 	Local nTop      := 0
 	Local nBottom   := 0
@@ -249,8 +234,6 @@ static function showResult( cAlias )
 	Local nWidth    := 0
 	Local nHeight   := 0
 
-	Private aHeaders  := {}
-	Private aBrowse   := {}
 
 	oDfSzDlg:AddObject ( 'oButtons', 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oBrowse' , 000, 000, .T., .T. )
@@ -284,7 +267,90 @@ static function showResult( cAlias )
 	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION oDlg:End() PIXEL
 	oBtnClose:cToolTip := "Fecha o programa."
 
+	MsgRun ( 'Montando Browse de Exibição ...', 'Aguarde ...',;
+		{ || makeLstBrw( cAlias, aHeaders, aLinesBrw, @bLinesBrw ) } )
+
+	bLinesBrw := &( bLinesBrw )
+
+	oBrowse := TWBrowse():New(;
+	/* nRow       */ oDfSzDlg:GetDimension( 'oBrowse', 'LININI' ) ,;
+	/* nCol       */ oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' ) ,;
+	/* nWidth     */ oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  ) ,;
+	/* nHeight    */ oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  ) ,;
+	/* bLine      */                                              ,;
+	/* aHeaders   */                                     aHeaders ,;
+	/* aColSizes  */                                              ,;
+	/* oDlg       */                                         oDlg ,;
+	/* cField     */                                              ,;
+	/* uValue1    */                                              ,;
+	/* uValue2    */                                              ,;
+	/* bChange    */                                              ,;
+	/* bLDblClick */                                              ,;
+	/* bRClick    */                                              ,;
+	/* oFont      */              TFont():New( 'Consolas',,-12, ) ,;
+	/* oCursor    */                                              ,;
+	/* nClrFore   */                                              ,;
+	/* nClrBack   */                                              ,;
+	/* cMsg       */                                              ,;
+	/* uParam20   */                                              ,;
+	/* cAlias     */                                              ,;
+	/* lPixel     */                                          .T. ,;
+	/* bWhen      */                                              ,;
+	/* uParam24   */                                              ,;
+	/* bValid     */                                              ,;
+	/* lHScroll   */                                          .T. ,;
+	/* lVScroll   */                                          .T.  )
+
+	//oBrowse:aHeaders := aHeaders
+	oBrowse:setArray( aLinesBrw )
+	oBrowse:bLine := bLinesBrw
+
 	ACTIVATE MSDIALOG oDlg CENTERED
+
+return
+
+static function makeLstBrw( cAlias, aHeaders, aLinesBrw, bLinesBrw )
+
+	Local nX   := 0
+	Local aAux := {}
+
+	( cAlias )->( DbGoTop() )
+
+	While ! ( cAlias )->( Eof() )
+
+		For nX := 1 To ( cAlias )->( FCount() )
+
+			aAdd( aAux, ( cAlias )->&( FieldName( nX ) ) )
+
+		Next
+
+		aAdd( aLinesBrw, aClone( aAux ) )
+
+		aSize( aAux, 0 )
+
+		( cAlias )->( DbSkip() )
+
+	End
+
+	bLinesBrw := '{||{'
+
+	For nX := 1 To ( cAlias )->( FCount() )
+
+		aAdd( aHeaders, ( cAlias )->( FieldName( nX ) ) )
+
+		bLinesBrw += 'aLinesBrw[ oBrowse:nAt, ' + cValToChar( nX ) + ']'
+
+		If nX < ( cAlias )->( FCount() )
+
+			bLinesBrw += ','
+
+		EndIf
+
+	Next
+
+	bLinesBrw += '}}'
+
+	//bLinesBrw := &( bLinesBrw )
 
 return
 
@@ -300,9 +366,9 @@ static function parseExp( cQuery, oJson )
 
 		next
 
-		ProcExp( @cQuery, oJson  )
-
 	endIf
+
+	ProcExp( @cQuery, oJson  )
 
 return
 
