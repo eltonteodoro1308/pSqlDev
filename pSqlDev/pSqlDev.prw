@@ -145,6 +145,7 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 	Local nStatus := 0
 	Local cErro   := ''
 	Local bError  := ErrorBlock( { | oErro | cErro := oErro:Description } )
+	Local cAux    := ''
 
 
 	if key == 'activeButtons'
@@ -165,6 +166,10 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 		parseTable( @cQuery, oJson )
 		parseBranch( @cQuery, oJson )
 		parseOrder( @cQuery, oJson )
+
+		aEval( StrTokArr2( cQuery, LF, .T. ), { |cLine| if( ! Empty( StrTran( cLine, CR, '' ) ), cAux += cLine, nil ) } )
+
+		cQuery := cAux
 
 		If key == 'query'
 
@@ -216,6 +221,7 @@ static function showResult( cAlias )
 	Local oDfSzDlg  := FwDefSize():New( .F. )
 	Local oDfSzBtn  := FwDefSize():New( .F. )
 	Local oFontBtn  := TFont():New( 'Consolas',,-12,,.T. )
+	Local oFontBrw  := TFont():New( 'Consolas',,-12, )
 	Local oDlg      := Nil
 	Local oBtn2Exc  := Nil
 	Local oBtnClose := Nil
@@ -233,7 +239,6 @@ static function showResult( cAlias )
 	Local nColumn   := 0
 	Local nWidth    := 0
 	Local nHeight   := 0
-
 
 	oDfSzDlg:AddObject ( 'oButtons', 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oBrowse' , 000, 000, .T., .T. )
@@ -272,38 +277,47 @@ static function showResult( cAlias )
 
 	bLinesBrw := &( bLinesBrw )
 
-	oBrowse := TWBrowse():New(;
-	/* nRow       */ oDfSzDlg:GetDimension( 'oBrowse', 'LININI' ) ,;
-	/* nCol       */ oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' ) ,;
-	/* nWidth     */ oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  ) ,;
-	/* nHeight    */ oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  ) ,;
-	/* bLine      */                                              ,;
-	/* aHeaders   */                                     aHeaders ,;
-	/* aColSizes  */                                              ,;
-	/* oDlg       */                                         oDlg ,;
-	/* cField     */                                              ,;
-	/* uValue1    */                                              ,;
-	/* uValue2    */                                              ,;
-	/* bChange    */                                              ,;
-	/* bLDblClick */                                              ,;
-	/* bRClick    */                                              ,;
-	/* oFont      */              TFont():New( 'Consolas',,-12, ) ,;
-	/* oCursor    */                                              ,;
-	/* nClrFore   */                                              ,;
-	/* nClrBack   */                                              ,;
-	/* cMsg       */                                              ,;
-	/* uParam20   */                                              ,;
-	/* cAlias     */                                              ,;
-	/* lPixel     */                                          .T. ,;
-	/* bWhen      */                                              ,;
-	/* uParam24   */                                              ,;
-	/* bValid     */                                              ,;
-	/* lHScroll   */                                          .T. ,;
-	/* lVScroll   */                                          .T.  )
+	nRow    := oDfSzDlg:GetDimension( 'oBrowse', 'LININI' )
+	nColumn := oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' )
+	nWidth  := oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  )
+	nHeight := oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  )
 
-	//oBrowse:aHeaders := aHeaders
+	@ nRow, nColumn LISTBOX oBrowse SIZE nWidth, nHeight OF oDlg FONT oFontBrw PIXEL
+
+//	oBrowse := TWBrowse():New(;
+//	/* nRow       */ oDfSzDlg:GetDimension( 'oBrowse', 'LININI' ) ,;
+//	/* nCol       */ oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' ) ,;
+//	/* nWidth     */ oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  ) ,;
+//	/* nHeight    */ oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  ) ,;
+//	/* bLine      */                                              ,;
+//	/* aHeaders   */                                     aHeaders ,;
+//	/* aColSizes  */                                              ,;
+//	/* oDlg       */                                         oDlg ,;
+//	/* cField     */                                              ,;
+//	/* uValue1    */                                              ,;
+//	/* uValue2    */                                              ,;
+//	/* bChange    */                                              ,;
+//	/* bLDblClick */                                              ,;
+//	/* bRClick    */                                              ,;
+//	/* oFont      */              TFont():New( 'Consolas',,-12, ) ,;
+//	/* oCursor    */                                              ,;
+//	/* nClrFore   */                                              ,;
+//	/* nClrBack   */                                              ,;
+//	/* cMsg       */                                              ,;
+//	/* uParam20   */                                              ,;
+//	/* cAlias     */                                              ,;
+//	/* lPixel     */                                          .T. ,;
+//	/* bWhen      */                                              ,;
+//	/* uParam24   */                                              ,;
+//	/* bValid     */                                              ,;
+//	/* lHScroll   */                                          .T. ,;
+//	/* lVScroll   */                                          .T.  )
+
 	oBrowse:setArray( aLinesBrw )
-	oBrowse:bLine := bLinesBrw
+	oBrowse:aHeaders := aHeaders
+	oBrowse:bLine    := bLinesBrw
+	oBrowse:lHScroll := .T.
+	oBrowse:lVScroll := .T.
 
 	ACTIVATE MSDIALOG oDlg CENTERED
 
@@ -350,8 +364,6 @@ static function makeLstBrw( cAlias, aHeaders, aLinesBrw, bLinesBrw )
 
 	bLinesBrw += '}}'
 
-	//bLinesBrw := &( bLinesBrw )
-
 return
 
 static function parseExp( cQuery, oJson )
@@ -383,7 +395,7 @@ static function ProcExp( cQuery, oJson )
 
 		for nX := 1 to Len( aList )
 
-			cExp   := aList[ nX ]
+			cExp := aList[ nX ]
 			cExp := StrTran( cExp, '%', '' )
 			cExp := StrTokArr2( cExp, ':', .T. )[2]
 

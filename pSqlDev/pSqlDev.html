@@ -119,7 +119,7 @@
 
         // Coleta as expressões embarcadas (%EXP:%)
         queryObject.embeddedExpressions =
-          queryObject.query.match(/%EXP:[ -ÿ]*%/gi);
+          queryObject.query.match(/%EXP:[ -ÿ]*?%/gi);
 
         // Coleta as colunas que terão tratamento de tipo (COLUMN)
         queryObject.columns = queryObject.query.match(
