@@ -115,6 +115,8 @@
             /(^[ \t]*\*.*$)|(--.*)|(((\/\*)+?[\w\W]*?(\*\/)+))/gim,
             ''
           );
+
+          queryObject.query = queryObject.query.replace(/^\s*$/gim, '');
         }
 
         // Coleta as expressões embarcadas (%EXP:%)

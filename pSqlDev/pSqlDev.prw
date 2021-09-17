@@ -132,7 +132,7 @@ user function pSqlDev()
 
 	aEval( oDlgMain:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:disable(), nil ) } )
 
-	ACTIVATE DIALOG oDlgMain CENTERED
+	oDlgMain:Activate(,,,.T.)
 
 return
 
@@ -145,8 +145,6 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 	Local nStatus := 0
 	Local cErro   := ''
 	Local bError  := ErrorBlock( { | oErro | cErro := oErro:Description } )
-	Local cAux    := ''
-
 
 	if key == 'activeButtons'
 
@@ -166,10 +164,6 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 		parseTable( @cQuery, oJson )
 		parseBranch( @cQuery, oJson )
 		parseOrder( @cQuery, oJson )
-
-		aEval( StrTokArr2( cQuery, LF, .T. ), { |cLine| if( ! Empty( StrTran( cLine, CR, '' ) ), cAux += cLine, nil ) } )
-
-		cQuery := cAux
 
 		If key == 'query'
 
@@ -220,8 +214,8 @@ static function showResult( cAlias )
 
 	Local oDfSzDlg  := FwDefSize():New( .F. )
 	Local oDfSzBtn  := FwDefSize():New( .F. )
-	Local oFontBtn  := TFont():New( 'Consolas',,-12,,.T. )
-	Local oFontBrw  := TFont():New( 'Consolas',,-12, )
+	Local oFontBtn  := TFont():New( 'Consolas',,-12,, .T. )
+	Local oFontBrw  := TFont():New( 'Consolas',,-12 )
 	Local oDlg      := Nil
 	Local oBtn2Exc  := Nil
 	Local oBtnClose := Nil
@@ -277,49 +271,39 @@ static function showResult( cAlias )
 
 	bLinesBrw := &( bLinesBrw )
 
-	nRow    := oDfSzDlg:GetDimension( 'oBrowse', 'LININI' )
-	nColumn := oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' )
-	nWidth  := oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  )
-	nHeight := oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  )
-
-	@ nRow, nColumn LISTBOX oBrowse SIZE nWidth, nHeight OF oDlg FONT oFontBrw PIXEL
-
-//	oBrowse := TWBrowse():New(;
-//	/* nRow       */ oDfSzDlg:GetDimension( 'oBrowse', 'LININI' ) ,;
-//	/* nCol       */ oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' ) ,;
-//	/* nWidth     */ oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  ) ,;
-//	/* nHeight    */ oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  ) ,;
-//	/* bLine      */                                              ,;
-//	/* aHeaders   */                                     aHeaders ,;
-//	/* aColSizes  */                                              ,;
-//	/* oDlg       */                                         oDlg ,;
-//	/* cField     */                                              ,;
-//	/* uValue1    */                                              ,;
-//	/* uValue2    */                                              ,;
-//	/* bChange    */                                              ,;
-//	/* bLDblClick */                                              ,;
-//	/* bRClick    */                                              ,;
-//	/* oFont      */              TFont():New( 'Consolas',,-12, ) ,;
-//	/* oCursor    */                                              ,;
-//	/* nClrFore   */                                              ,;
-//	/* nClrBack   */                                              ,;
-//	/* cMsg       */                                              ,;
-//	/* uParam20   */                                              ,;
-//	/* cAlias     */                                              ,;
-//	/* lPixel     */                                          .T. ,;
-//	/* bWhen      */                                              ,;
-//	/* uParam24   */                                              ,;
-//	/* bValid     */                                              ,;
-//	/* lHScroll   */                                          .T. ,;
-//	/* lVScroll   */                                          .T.  )
+	oBrowse := TWBrowse():New(;
+	/* nRow       */ oDfSzDlg:GetDimension( 'oBrowse', 'LININI' ) ,;
+	/* nCol       */ oDfSzDlg:GetDimension( 'oBrowse', 'COLINI' ) ,;
+	/* nWidth     */ oDfSzDlg:GetDimension( 'oBrowse', 'XSIZE'  ) ,;
+	/* nHeight    */ oDfSzDlg:GetDimension( 'oBrowse', 'YSIZE'  ) ,;
+	/* bLine      */                                              ,;
+	/* aHeaders   */                                     aHeaders ,;
+	/* aColSizes  */                                              ,;
+	/* oDlg       */                                         oDlg ,;
+	/* cField     */                                              ,;
+	/* uValue1    */                                              ,;
+	/* uValue2    */                                              ,;
+	/* bChange    */                                              ,;
+	/* bLDblClick */                                              ,;
+	/* bRClick    */                                              ,;
+	/* oFont      */                                     oFontBrw ,;
+	/* oCursor    */                                              ,;
+	/* nClrFore   */                                              ,;
+	/* nClrBack   */                                              ,;
+	/* cMsg       */                                              ,;
+	/* uParam20   */                                              ,;
+	/* cAlias     */                                              ,;
+	/* lPixel     */                                          .T. ,;
+	/* bWhen      */                                              ,;
+	/* uParam24   */                                              ,;
+	/* bValid     */                                              ,;
+	/* lHScroll   */                                          .T. ,;
+	/* lVScroll   */                                          .T.  )
 
 	oBrowse:setArray( aLinesBrw )
-	oBrowse:aHeaders := aHeaders
 	oBrowse:bLine    := bLinesBrw
-	oBrowse:lHScroll := .T.
-	oBrowse:lVScroll := .T.
 
-	ACTIVATE MSDIALOG oDlg CENTERED
+	oDlg:Activate(,,,.T.)
 
 return
 
