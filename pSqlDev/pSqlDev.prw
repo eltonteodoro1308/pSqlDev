@@ -192,12 +192,12 @@ user function pSqlDev()
 	/* nRow      */ oDfSzBtn:GetDimension( 'oChkCommnt', 'LININI' ) + 5 ,;
 	/* nCol      */ oDfSzBtn:GetDimension( 'oChkCommnt', 'COLINI' ) + 5 ,;
 	/* cCaption  */                             'PARSE SEM COMENTÁRIOS' ,;
-	/* bSetGet   */                   { || lChkCommnt := ! lChkCommnt } ,;
+	/* bSetGet   */                                   { || lChkCommnt } ,;
 	/* oDlg      */                                            oDlgMain ,;
 	/* nWidth    */     oDfSzBtn:GetDimension( 'oChkCommnt', 'XSIZE'  ) ,;
 	/* nHeight   */     oDfSzBtn:GetDimension( 'oChkCommnt', 'YSIZE'  ) ,;
 	/* uParam8   */                                                     ,; 
-	/* bLClicked */                                                     ,;
+	/* bLClicked */                   { || lChkCommnt := ! lChkCommnt } ,;
 	/* oFont     */                                            oFontBtn ,;
 	/* bValid    */                                                     ,;
 	/* nClrText  */                                                     ,;
