@@ -109,14 +109,13 @@
         // Coleta as expressões advpl
         queryObject.advplExpressions = queryObject.query.match(/--\?.*/gi);
 
-        // Se solicitado exclui os comentários
+        // Se solicitado exclui os comentários e as linhas em branco
         if (trimComments) {
           queryObject.query = queryObject.query.replace(
             /(^[ \t]*\*.*$)|(--.*)|(((\/\*)+?[\w\W]*?(\*\/)+))/gim,
             ''
           );
-
-          queryObject.query = queryObject.query.replace(/^\s*$/gim, '');
+          
         }
 
         // Coleta as expressões embarcadas (%EXP:%)

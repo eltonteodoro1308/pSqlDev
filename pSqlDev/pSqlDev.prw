@@ -25,16 +25,8 @@ user function pSqlDev()
 	Local oWebChannel := nil
 	Local oWebEngine  := nil
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
-
-	Local nTop    := 0
-	Local nBottom := 0
-	Local nLeft   := 0
-	Local nRight  := 0
-
-	Local nRow    := 0
-	Local nColumn := 0
-	Local nWidth  := 0
-	Local nHeight := 0
+	Local bQuery      := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' )  }
+	Local bScript     := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) }
 
 	oDfSzDlg:AddObject ( 'oButtons'   , 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oWebEngine' , 000, 000, .T., .T. )
@@ -50,87 +42,194 @@ user function pSqlDev()
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
 
-	nTop    := oDfSzBtn:aWindSize[ 1 ]
-	nLeft   := oDfSzBtn:aWindSize[ 2 ]
-	nBottom := oDfSzBtn:aWindSize[ 3 ]
-	nRight  := oDfSzBtn:aWindSize[ 4 ]
+	oDlgMain := MsDialog():New(;
+	/* nTop         */ oDfSzDlg:aWindSize[ 1 ] ,;
+	/* nLeft        */ oDfSzDlg:aWindSize[ 2 ] ,;
+	/* nBottom      */ oDfSzDlg:aWindSize[ 3 ] ,;
+	/* nRight       */ oDfSzDlg:aWindSize[ 4 ] ,;
+	/* cCaption     */                  cTitle ,;
+	/* uParam6      */                         ,;
+	/* uParam7      */                         ,;
+	/* uParam8      */                         ,;
+	/* uParam9      */                         ,;
+	/* nClrText     */                         ,;
+	/* nClrBack     */                         ,;
+	/* uParam12     */                         ,;
+	/* oWnd         */                         ,;
+	/* lPixel       */                     .T. ,;
+	/* uParam15     */                         ,;
+	/* uParam16     */                         ,;
+	/* uParam17     */                         ,;
+	/* lTransparent */                          )
 
-	DEFINE MSDIALOG oDlgMain TITLE cTitle FROM nTop, nLeft TO nBottom, nRight PIXEL
+	oBtnQuery := TButton():New(;
+	/* nRow     */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'LININI' ) ,;
+	/* nCol     */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' ) ,;
+	/* cCaption */                                                           'QUERY <F5>' ,;
+	/* oWnd     */                                                               oDlgMain ,;
+	/* bAction  */ bQuery ,;
+	/* nWidth   */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  ) ,;
+	/* nHeight  */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  ) ,;
+	/* uParam8  */                                                                        ,;
+	/* oFont    */                                                               oFontBtn ,;
+	/* uParam10 */                                                                        ,;
+	/* lPixel   */                                                                    .T. ,;
+	/* uParam12 */                                                                        ,;
+	/* uParam13 */                                                                        ,;
+	/* uParam14 */                                                                        ,;
+	/* bWhen    */                                                                        ,;
+	/* uParam16 */                                                                        ,;
+	/* uParam17 */                                                                         )
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnQuery', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  )
-
-	@ nRow, nColumn BUTTON oBtnQuery PROMPT 'QUERY <F5>' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn;
-		ACTION oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' ) PIXEL
 	oBtnQuery:cToolTip := "Executa uma query de consulta ao banco de dados."
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnScript', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  )
+	oBtnScript := TButton():New(;
+	/* nRow     */                        oDfSzBtn:GetDimension( 'oBtnScript', 'LININI' ) ,;
+	/* nCol     */                        oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' ) ,;
+	/* cCaption */                                                          'SCRIPT <F6>' ,;
+	/* oWnd     */                                                               oDlgMain ,;
+	/* bAction  */ bScript ,;
+	/* nWidth   */                        oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  ) ,;
+	/* nHeight  */                        oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  ) ,;
+	/* uParam8  */                                                                        ,;
+	/* oFont    */                                                               oFontBtn ,;
+	/* uParam10 */                                                                        ,;
+	/* lPixel   */                                                                    .T. ,;
+	/* uParam12 */                                                                        ,;
+	/* uParam13 */                                                                        ,;
+	/* uParam14 */                                                                        ,;
+	/* bWhen    */                                                                        ,;
+	/* uParam16 */                                                                        ,;
+	/* uParam17 */                                                                         )
 
-	@ nRow, nColumn BUTTON oBtnScript PROMPT 'SCRIPT <F6>' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION;
-		oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) PIXEL
 	oBtnScript:cToolTip := "Executa um script sql no banco de dados."
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnParse', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnParse', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnParse', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnParse', 'YSIZE'  )
+	oBtnParse := TButton():New(;
+	/* nRow     */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'LININI' ) ,;
+	/* nCol     */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'COLINI' ) ,;
+	/* cCaption */                                                                                                  'PARSE' ,;
+	/* oWnd     */                                                                                                 oDlgMain ,;
+	/* bAction  */ { || oWebEngine:runJavaScript( 'makeQueryObject(' + If( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) } ,;
+	/* nWidth   */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'XSIZE'  ) ,;
+	/* nHeight  */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'YSIZE'  ) ,;
+	/* uParam8  */                                                                                                          ,;
+	/* oFont    */                                                                                                 oFontBtn ,;
+	/* uParam10 */                                                                                                          ,;
+	/* lPixel   */                                                                                                      .T. ,;
+	/* uParam12 */                                                                                                          ,;
+	/* uParam13 */                                                                                                          ,;
+	/* uParam14 */                                                                                                          ,;
+	/* bWhen    */                                                                                                          ,;
+	/* uParam16 */                                                                                                          ,;
+	/* uParam17 */                                                                                                           )
 
-	@ nRow, nColumn BUTTON oBtnParse PROMPT 'PARSE' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION;
-		oWebEngine:runJavaScript( 'makeQueryObject(' + IF( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) PIXEL
 	oBtnParse:cToolTip := "Faz o parse da query, tratando e resolvendo o embedded sql."
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnOpen', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnOpen', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnOpen', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnOpen', 'YSIZE'  )
+	oBtnOpen := TButton():New(;
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnOpen', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnOpen', 'COLINI' ) ,;
+	/* cCaption */                                       'ABRIR' ,;
+	/* oWnd     */                                      oDlgMain ,;
+	/* bAction  */                         { || alert('ABRIR') } ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnOpen', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnOpen', 'YSIZE'  ) ,;
+	/* uParam8  */                                               ,;
+	/* oFont    */                                      oFontBtn ,;
+	/* uParam10 */                                               ,;
+	/* lPixel   */                                           .T. ,;
+	/* uParam12 */                                               ,;
+	/* uParam13 */                                               ,;
+	/* uParam14 */                                               ,;
+	/* bWhen    */                                               ,;
+	/* uParam16 */                                               ,;
+	/* uParam17 */                                                )
 
-	@ nRow, nColumn BUTTON oBtnOpen PROMPT 'ABRIR' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION alert('ABRIR') PIXEL
 	oBtnOpen:cToolTip := "Abre um arquivo salvo."
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnSave', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnSave', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnSave', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnSave', 'YSIZE'  )
+	oBtnSave := TButton():New(;
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnSave', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnSave', 'COLINI' ) ,;
+	/* cCaption */                                      'SALVAR' ,;
+	/* oWnd     */                                      oDlgMain ,;
+	/* bAction  */                        { || alert('SALVAR') } ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnSave', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnSave', 'YSIZE'  ) ,;
+	/* uParam8  */                                               ,;
+	/* oFont    */                                      oFontBtn ,;
+	/* uParam10 */                                               ,;
+	/* lPixel   */                                           .T. ,;
+	/* uParam12 */                                               ,;
+	/* uParam13 */                                               ,;
+	/* uParam14 */                                               ,;
+	/* bWhen    */                                               ,;
+	/* uParam16 */                                               ,;
+	/* uParam17 */                                                )
 
-	@ nRow, nColumn BUTTON oBtnSave PROMPT 'SALVAR' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION alert('SALVAR') PIXEL
 	oBtnSave:cToolTip := "Salvo a consulta."
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnClose', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  )
+	oBtnClose := TButton():New(;
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' ) ,;
+	/* cCaption */                                       'FECHAR' ,;
+	/* oWnd     */                                       oDlgMain ,;
+	/* bAction  */                          { || oDlgMain:End() } ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnClose', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  ) ,;
+	/* uParam8  */                                                ,;
+	/* oFont    */                                       oFontBtn ,;
+	/* uParam10 */                                                ,;
+	/* lPixel   */                                            .T. ,;
+	/* uParam12 */                                                ,;
+	/* uParam13 */                                                ,;
+	/* uParam14 */                                                ,;
+	/* bWhen    */                                                ,;
+	/* uParam16 */                                                ,;
+	/* uParam17 */                                                 )
 
-	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn ACTION oDlgMain:End() PIXEL
 	oBtnClose:cToolTip := "Fecha o programa."
 
-	nRow    := oDfSzBtn:GetDimension( 'oChkCommnt', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oChkCommnt', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oChkCommnt', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oChkCommnt', 'YSIZE'  )
+	oChkCommnt := TCheckBox():New(;
+	/* nRow      */ oDfSzBtn:GetDimension( 'oChkCommnt', 'LININI' ) + 5 ,;
+	/* nCol      */ oDfSzBtn:GetDimension( 'oChkCommnt', 'COLINI' ) + 5 ,;
+	/* cCaption  */                             'PARSE SEM COMENTÁRIOS' ,;
+	/* bSetGet   */                   { || lChkCommnt := ! lChkCommnt } ,;
+	/* oDlg      */                                            oDlgMain ,;
+	/* nWidth    */     oDfSzBtn:GetDimension( 'oChkCommnt', 'XSIZE'  ) ,;
+	/* nHeight   */     oDfSzBtn:GetDimension( 'oChkCommnt', 'YSIZE'  ) ,;
+	/* uParam8   */                                                     ,; 
+	/* bLClicked */                                                     ,;
+	/* oFont     */                                            oFontBtn ,;
+	/* bValid    */                                                     ,;
+	/* nClrText  */                                                     ,;
+	/* nClrPane  */                                                     ,;
+	/* uParam14  */                                                     ,;
+	/* lPixel    */                                                 .T. ,;
+	/* cMsg      */                                                     ,;
+	/* uParam17  */                                                     ,;
+	/* bWhen     */                                                      )
 
-	@ nRow+5, nColumn+5 CHECKBOX oChkCommnt VAR lChkCommnt PROMPT "PARSE SEM COMENTÁRIOS" SIZE nWidth, nHeight OF oDlgMain FONT oFontBtn PIXEL
 	oChkCommnt:cToolTip := "No parser da query exclui os comentários."
 
-	nRow    := oDfSzDlg:GetDimension( 'oWebEngine', 'LININI' )
-	nColumn := oDfSzDlg:GetDimension( 'oWebEngine', 'COLINI' )
-	nWidth  := oDfSzDlg:GetDimension( 'oWebEngine', 'XSIZE'  )
-	nHeight := oDfSzDlg:GetDimension( 'oWebEngine', 'YSIZE'  )
-
 	oWebChannel := TWebChannel():New()
-	oWebChannel:bJsToAdvpl := {|self,key,value| jsToAdvpl(self,key,value, cCacheFile) }
+	oWebChannel:bJsToAdvpl := { | self, key, value | jsToAdvpl( self, key, value, cCacheFile ) }
 	oWebChannel:connect()
 
-	oWebEngine := TWebEngine():New( oDlgMain, nRow, nColumn, nWidth, nHeight, getUrl(), oWebChannel:nPort )
+	oWebEngine := TWebEngine():New(;
+	/* oWnd    */                                        oDlgMain ,;
+	/* nRow    */ oDfSzDlg:GetDimension( 'oWebEngine', 'LININI' ) ,;
+	/* nCol    */ oDfSzDlg:GetDimension( 'oWebEngine', 'COLINI' ) ,;
+	/* nWidth  */ oDfSzDlg:GetDimension( 'oWebEngine', 'XSIZE'  ) ,;
+	/* nHeight */ oDfSzDlg:GetDimension( 'oWebEngine', 'YSIZE'  ) ,;
+	/* cUrl    */                                        getUrl() ,;
+	/* nPort   */                               oWebChannel:nPort  )
 
 	oWebEngine:bLoadFinished := { | webengine, url |;
 		WebEngine:runJavaScript( "document.querySelector('textarea').value = `" + cCache + "`" ) }
 
 	aEval( oDlgMain:aControls, { |item| if( getClassName( item ) $ 'TBUTTON/TCHECKBOX', item:disable(), nil ) } )
+
+	SetKey( VK_F5, bQuery  )
+	SetKey( VK_F6, bScript )
 
 	oDlgMain:Activate(,,,.T.)
 
@@ -164,6 +263,12 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 		parseTable( @cQuery, oJson )
 		parseBranch( @cQuery, oJson )
 		parseOrder( @cQuery, oJson )
+
+		if ! oJson['noParser']
+
+			cQuery := changeQuery( cQuery )
+
+		endIf
 
 		If key == 'query'
 
@@ -223,16 +328,8 @@ static function showResult( cAlias )
 	Local aHeaders  := {}
 	Local aLinesBrw := {}
 	Local bLinesBrw := nil
-
-	Local nTop      := 0
-	Local nBottom   := 0
-	Local nLeft     := 0
-	Local nRight    := 0
-
-	Local nRow      := 0
-	Local nColumn   := 0
-	Local nWidth    := 0
-	Local nHeight   := 0
+	Local bBlkF5    := SetKey( VK_F5, {||} )
+	Local bBlkF6    := SetKey( VK_F6, {||} )
 
 	oDfSzDlg:AddObject ( 'oButtons', 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oBrowse' , 000, 000, .T., .T. )
@@ -243,28 +340,67 @@ static function showResult( cAlias )
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
 
-	nTop    := oDfSzDlg:aWindSize[ 1 ]
-	nBottom := oDfSzDlg:aWindSize[ 2 ]
-	nLeft   := oDfSzDlg:aWindSize[ 3 ]
-	nRight  := oDfSzDlg:aWindSize[ 4 ]
+	oDlg := MsDialog():New(;
+	/* nTop         */ oDfSzDlg:aWindSize[ 1 ] ,;
+	/* nLeft        */ oDfSzDlg:aWindSize[ 2 ] ,;
+	/* nBottom      */ oDfSzDlg:aWindSize[ 3 ] ,;
+	/* nRight       */ oDfSzDlg:aWindSize[ 4 ] ,;
+	/* cCaption     */                  cAlias ,;
+	/* uParam6      */                         ,;
+	/* uParam7      */                         ,;
+	/* uParam8      */                         ,;
+	/* uParam9      */                         ,;
+	/* nClrText     */                         ,;
+	/* nClrBack     */                         ,;
+	/* uParam12     */                         ,;
+	/* oWnd         */                         ,;
+	/* lPixel       */                     .T. ,;
+	/* uParam15     */                         ,;
+	/* uParam16     */                         ,;
+	/* uParam17     */                         ,;
+	/* lTransparent */                          )
 
-	DEFINE MSDIALOG oDlg TITLE cAlias FROM nTop, nBottom  TO nLeft, nRight PIXEL
+	oBtn2Exc := TButton():New(;
+	/* nRow     */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'LININI' ) ,;
+	/* nCol     */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'COLINI' ) ,;
+	/* cCaption */                                        'EXCEL' ,;
+	/* oWnd     */                                           oDlg ,;
+	/* bAction  */                          { || alert('EXCEL') } ,;
+	/* nWidth   */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'XSIZE'  ) ,;
+	/* nHeight  */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'YSIZE'  ) ,;
+	/* uParam8  */                                                ,;
+	/* oFont    */                                       oFontBtn ,;
+	/* uParam10 */                                                ,;
+	/* lPixel   */                                            .T. ,;
+	/* uParam12 */                                                ,;
+	/* uParam13 */                                                ,;
+	/* uParam14 */                                                ,;
+	/* bWhen    */                                                ,;
+	/* uParam16 */                                                ,;
+	/* uParam17 */                                                 )
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtn2Exc', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtn2Exc', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtn2Exc', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtn2Exc', 'YSIZE'  )
-
-	@ nRow, nColumn BUTTON oBtn2Exc PROMPT 'EXCEL' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION alert('EXCEL') PIXEL
 	oBtn2Exc:cToolTip := "Exporta para Excel."
 
-	nRow    := oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' )
-	nColumn := oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' )
-	nWidth  := oDfSzBtn:GetDimension( 'oBtnClose', 'XSIZE'  )
-	nHeight := oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  )
+	oBtnClose := TButton():New(;
+	/* nRow     */  oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' ) ,;
+	/* nCol     */  oDfSzBtn:GetDimension( 'oBtnClose', 'COLINI' ) ,;
+	/* cCaption */                                        'FECHAR' ,;
+	/* oWnd     */                                            oDlg ,;
+	/* bAction  */                               { || oDlg:End() } ,;
+	/* nWidth   */  oDfSzBtn:GetDimension( 'oBtnClose', 'XSIZE'  ) ,;
+	/* nHeight  */  oDfSzBtn:GetDimension( 'oBtnClose', 'YSIZE'  ) ,;
+	/* uParam8  */                                                 ,;
+	/* oFont    */                                        oFontBtn ,;
+	/* uParam10 */                                                 ,;
+	/* lPixel   */                                             .T. ,;
+	/* uParam12 */                                                 ,;
+	/* uParam13 */                                                 ,;
+	/* uParam14 */                                                 ,;
+	/* bWhen    */                                                 ,;
+	/* uParam16 */                                                 ,;
+	/* uParam17 */                                                  )
 
-	@ nRow, nColumn BUTTON oBtnClose PROMPT 'FECHAR' SIZE nWidth, nHeight OF oDlg FONT oFontBtn ACTION oDlg:End() PIXEL
-	oBtnClose:cToolTip := "Fecha o programa."
+	oBtnClose:cToolTip := "Fecha a Janela."
 
 	MsgRun ( 'Montando Browse de Exibição ...', 'Aguarde ...',;
 		{ || makeLstBrw( cAlias, aHeaders, aLinesBrw, @bLinesBrw ) } )
@@ -304,6 +440,9 @@ static function showResult( cAlias )
 	oBrowse:bLine    := bLinesBrw
 
 	oDlg:Activate(,,,.T.)
+
+	SetKey( VK_F5, bBlkF5 )
+	SetKey( VK_F6, bBlkF6 )
 
 return
 
