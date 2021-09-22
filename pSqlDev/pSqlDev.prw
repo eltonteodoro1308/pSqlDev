@@ -29,6 +29,7 @@ user function pSqlDev()
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
 	Local bQuery      := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' )  }
 	Local bScript     := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) }
+	Local bParse      := { || oWebEngine:runJavaScript( 'makeQueryObject(' + If( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) }
 
 	oDfSzDlg:AddObject ( 'oButtons'   , 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oWebEngine' , 000, 000, .T., .T. )
@@ -66,65 +67,65 @@ user function pSqlDev()
 	/* lTransparent */                          )
 
 	oBtnQuery := TButton():New(;
-	/* nRow     */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'LININI' ) ,;
-	/* nCol     */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' ) ,;
-	/* cCaption */                                                           'QUERY <F5>' ,;
-	/* oWnd     */                                                               oDlgMain ,;
-	/* bAction  */                                                                 bQuery ,;
-	/* nWidth   */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  ) ,;
-	/* nHeight  */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  ) ,;
-	/* uParam8  */                                                                        ,;
-	/* oFont    */                                                               oFontBtn ,;
-	/* uParam10 */                                                                        ,;
-	/* lPixel   */                                                                    .T. ,;
-	/* uParam12 */                                                                        ,;
-	/* uParam13 */                                                                        ,;
-	/* uParam14 */                                                                        ,;
-	/* bWhen    */                                                                        ,;
-	/* uParam16 */                                                                        ,;
-	/* uParam17 */                                                                         )
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnQuery', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' ) ,;
+	/* cCaption */                                   'QUERY <F5>' ,;
+	/* oWnd     */                                       oDlgMain ,;
+	/* bAction  */                                         bQuery ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  ) ,;
+	/* uParam8  */                                                ,;
+	/* oFont    */                                       oFontBtn ,;
+	/* uParam10 */                                                ,;
+	/* lPixel   */                                            .T. ,;
+	/* uParam12 */                                                ,;
+	/* uParam13 */                                                ,;
+	/* uParam14 */                                                ,;
+	/* bWhen    */                                                ,;
+	/* uParam16 */                                                ,;
+	/* uParam17 */                                                 )
 
 	oBtnQuery:cToolTip := "Executa uma query de consulta ao banco de dados."
 
 	oBtnScript := TButton():New(;
-	/* nRow     */                        oDfSzBtn:GetDimension( 'oBtnScript', 'LININI' ) ,;
-	/* nCol     */                        oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' ) ,;
-	/* cCaption */                                                          'SCRIPT <F6>' ,;
-	/* oWnd     */                                                               oDlgMain ,;
-	/* bAction  */                                                                bScript ,;
-	/* nWidth   */                        oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  ) ,;
-	/* nHeight  */                        oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  ) ,;
-	/* uParam8  */                                                                        ,;
-	/* oFont    */                                                               oFontBtn ,;
-	/* uParam10 */                                                                        ,;
-	/* lPixel   */                                                                    .T. ,;
-	/* uParam12 */                                                                        ,;
-	/* uParam13 */                                                                        ,;
-	/* uParam14 */                                                                        ,;
-	/* bWhen    */                                                                        ,;
-	/* uParam16 */                                                                        ,;
-	/* uParam17 */                                                                         )
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnScript', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' ) ,;
+	/* cCaption */                                   'SCRIPT <F6>' ,;
+	/* oWnd     */                                        oDlgMain ,;
+	/* bAction  */                                         bScript ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  ) ,;
+	/* uParam8  */                                                 ,;
+	/* oFont    */                                        oFontBtn ,;
+	/* uParam10 */                                                 ,;
+	/* lPixel   */                                             .T. ,;
+	/* uParam12 */                                                 ,;
+	/* uParam13 */                                                 ,;
+	/* uParam14 */                                                 ,;
+	/* bWhen    */                                                 ,;
+	/* uParam16 */                                                 ,;
+	/* uParam17 */                                                  )
 
 	oBtnScript:cToolTip := "Executa um script sql no banco de dados."
 
 	oBtnParse := TButton():New(;
-	/* nRow     */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'LININI' ) ,;
-	/* nCol     */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'COLINI' ) ,;
-	/* cCaption */                                                                                                  'PARSE' ,;
-	/* oWnd     */                                                                                                 oDlgMain ,;
-	/* bAction  */ { || oWebEngine:runJavaScript( 'makeQueryObject(' + If( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) } ,;
-	/* nWidth   */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'XSIZE'  ) ,;
-	/* nHeight  */                                                           oDfSzBtn:GetDimension( 'oBtnParse', 'YSIZE'  ) ,;
-	/* uParam8  */                                                                                                          ,;
-	/* oFont    */                                                                                                 oFontBtn ,;
-	/* uParam10 */                                                                                                          ,;
-	/* lPixel   */                                                                                                      .T. ,;
-	/* uParam12 */                                                                                                          ,;
-	/* uParam13 */                                                                                                          ,;
-	/* uParam14 */                                                                                                          ,;
-	/* bWhen    */                                                                                                          ,;
-	/* uParam16 */                                                                                                          ,;
-	/* uParam17 */                                                                                                           )
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnParse', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnParse', 'COLINI' ) ,;
+	/* cCaption */                                        'PARSE' ,;
+	/* oWnd     */                                       oDlgMain ,;
+	/* bAction  */                                         bParse ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnParse', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnParse', 'YSIZE'  ) ,;
+	/* uParam8  */                                                ,;
+	/* oFont    */                                       oFontBtn ,;
+	/* uParam10 */                                                ,;
+	/* lPixel   */                                            .T. ,;
+	/* uParam12 */                                                ,;
+	/* uParam13 */                                                ,;
+	/* uParam14 */                                                ,;
+	/* bWhen    */                                                ,;
+	/* uParam16 */                                                ,;
+	/* uParam17 */                                                 )
 
 	oBtnParse:cToolTip := "Faz o parse da query, tratando e resolvendo o embedded sql."
 
