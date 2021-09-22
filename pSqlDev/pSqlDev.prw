@@ -9,6 +9,7 @@ user function pSqlDev()
 
 	Static oDlgMain   := nil
 	Static oFontBtn   := TFont():New( 'Consolas',,-12,,.T. )
+	Static lChkChgQry := .F.
 
 	Local cCacheFile  := 'pSqlDev.sql'
 	Local cCache      := memoRead( cCacheFile )
@@ -22,6 +23,7 @@ user function pSqlDev()
 	Local oBtnClose   := nil
 	Local oChkCommnt  := nil
 	Local lChkCommnt  := .T.
+	Local oChkChgQry  := nil
 	Local oWebChannel := nil
 	Local oWebEngine  := nil
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
@@ -39,6 +41,7 @@ user function pSqlDev()
 	oDfSzBtn:AddObject ( 'oBtnSave'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnClose' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oChkCommnt', 080, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oChkChgQry', 080, 015, .F., .F. )
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
 
@@ -67,7 +70,7 @@ user function pSqlDev()
 	/* nCol     */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'COLINI' ) ,;
 	/* cCaption */                                                           'QUERY <F5>' ,;
 	/* oWnd     */                                                               oDlgMain ,;
-	/* bAction  */ bQuery ,;
+	/* bAction  */                                                                 bQuery ,;
 	/* nWidth   */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'XSIZE'  ) ,;
 	/* nHeight  */                         oDfSzBtn:GetDimension( 'oBtnQuery', 'YSIZE'  ) ,;
 	/* uParam8  */                                                                        ,;
@@ -88,7 +91,7 @@ user function pSqlDev()
 	/* nCol     */                        oDfSzBtn:GetDimension( 'oBtnScript', 'COLINI' ) ,;
 	/* cCaption */                                                          'SCRIPT <F6>' ,;
 	/* oWnd     */                                                               oDlgMain ,;
-	/* bAction  */ bScript ,;
+	/* bAction  */                                                                bScript ,;
 	/* nWidth   */                        oDfSzBtn:GetDimension( 'oBtnScript', 'XSIZE'  ) ,;
 	/* nHeight  */                        oDfSzBtn:GetDimension( 'oBtnScript', 'YSIZE'  ) ,;
 	/* uParam8  */                                                                        ,;
@@ -210,6 +213,28 @@ user function pSqlDev()
 
 	oChkCommnt:cToolTip := "No parser da query exclui os comentários."
 
+	oChkChgQry := TCheckBox():New(;
+	/* nRow      */ oDfSzBtn:GetDimension( 'oChkChgQry', 'LININI' ) + 5 ,;
+	/* nCol      */ oDfSzBtn:GetDimension( 'oChkChgQry', 'COLINI' ) + 9 ,;
+	/* cCaption  */                                'APLICA CHANGEQUERY' ,;
+	/* bSetGet   */                                   { || lChkChgQry } ,;
+	/* oDlg      */                                            oDlgMain ,;
+	/* nWidth    */     oDfSzBtn:GetDimension( 'oChkChgQry', 'XSIZE'  ) ,;
+	/* nHeight   */     oDfSzBtn:GetDimension( 'oChkChgQry', 'YSIZE'  ) ,;
+	/* uParam8   */                                                     ,; 
+	/* bLClicked */                   { || lChkChgQry := ! lChkChgQry } ,;
+	/* oFont     */                                            oFontBtn ,;
+	/* bValid    */                                                     ,;
+	/* nClrText  */                                                     ,;
+	/* nClrPane  */                                                     ,;
+	/* uParam14  */                                                     ,;
+	/* lPixel    */                                                 .T. ,;
+	/* cMsg      */                                                     ,;
+	/* uParam17  */                                                     ,;
+	/* bWhen     */                                                      )
+
+	oChkChgQry:cToolTip := "Aplica a função ChangeQuery antes de executar a query."
+
 	oWebChannel := TWebChannel():New()
 	oWebChannel:bJsToAdvpl := { | self, key, value | jsToAdvpl( self, key, value, cCacheFile ) }
 	oWebChannel:connect()
@@ -264,7 +289,7 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 		parseBranch( @cQuery, oJson )
 		parseOrder( @cQuery, oJson )
 
-		if ! oJson['noParser']
+		if lChkChgQry .And. ! oJson['noParser']
 
 			cQuery := changeQuery( cQuery )
 
@@ -319,7 +344,6 @@ static function showResult( cAlias )
 
 	Local oDfSzDlg  := FwDefSize():New( .F. )
 	Local oDfSzBtn  := FwDefSize():New( .F. )
-	Local oFontBtn  := TFont():New( 'Consolas',,-12,, .T. )
 	Local oFontBrw  := TFont():New( 'Consolas',,-12 )
 	Local oDlg      := Nil
 	Local oBtn2Exc  := Nil
@@ -444,6 +468,16 @@ static function showResult( cAlias )
 	SetKey( VK_F5, bBlkF5 )
 	SetKey( VK_F6, bBlkF6 )
 
+return
+
+static function expToExcel( cAlias )
+
+	Local oFWMsExcel := FWMSExcel():New()
+	Local cWorkSheet := 'pSqlQuery'
+
+	oFWMsExcel:AddworkSheet(cWorkSheet)
+	oFWMsExcel:AddTable(cWorkSheet,cAlias)
+	//TODO Tratar o resultado da query com treport
 return
 
 static function makeLstBrw( cAlias, aHeaders, aLinesBrw, bLinesBrw )
