@@ -270,6 +270,7 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 	Local nStatus := 0
 	Local cErro   := ''
 	Local bError  := ErrorBlock( { | oErro | cErro := oErro:Description } )
+	Local nX      := 0
 
 	if key == 'activeButtons'
 
@@ -302,9 +303,13 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 			if empty( cErro )
 
-				showResult( cAlias )
+				for nX := 1 to Len( aColumn )
 
-				( cAlias )->( DbCloseArea() )
+					TCSetField( cAlias, aColumn[ nX, 1 ],  aColumn[ nX, 2 ],  aColumn[ nX, 3 ],  aColumn[ nX, 4 ] )
+
+				next nX
+
+				showResult( cAlias )
 
 			else
 
@@ -347,7 +352,7 @@ static function showResult( cAlias )
 	Local oDfSzBtn  := FwDefSize():New( .F. )
 	Local oFontBrw  := TFont():New( 'Consolas',,-12 )
 	Local oDlg      := Nil
-	Local oBtn2Exc  := Nil
+	Local oBtn2Csv  := Nil
 	Local oBtnClose := Nil
 	Local oBrowse   := Nil
 	Local aHeaders  := {}
@@ -360,7 +365,7 @@ static function showResult( cAlias )
 	oDfSzDlg:AddObject ( 'oBrowse' , 000, 000, .T., .T. )
 	oDfSzDlg:Process()
 
-	oDfSzBtn:AddObject ( 'oBtn2Exc' , 050, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtn2Csv' , 050, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnClose', 050, 015, .F., .F. )
 	oDfSzBtn:lLateral := .T.
 	oDfSzBtn:Process()
@@ -385,14 +390,14 @@ static function showResult( cAlias )
 	/* uParam17     */                         ,;
 	/* lTransparent */                          )
 
-	oBtn2Exc := TButton():New(;
-	/* nRow     */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'LININI' ) ,;
-	/* nCol     */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'COLINI' ) ,;
+	oBtn2Csv := TButton():New(;
+	/* nRow     */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'LININI' ) ,;
+	/* nCol     */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'COLINI' ) ,;
 	/* cCaption */                                        'EXCEL' ,;
 	/* oWnd     */                                           oDlg ,;
-	/* bAction  */                          { || alert('EXCEL') } ,;
-	/* nWidth   */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'XSIZE'  ) ,;
-	/* nHeight  */  oDfSzBtn:GetDimension( 'oBtn2Exc', 'YSIZE'  ) ,;
+	/* bAction  */       { || expToCsv( aHeaders, aLinesBrw ) } ,;
+	/* nWidth   */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'XSIZE'  ) ,;
+	/* nHeight  */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'YSIZE'  ) ,;
 	/* uParam8  */                                                ,;
 	/* oFont    */                                       oFontBtn ,;
 	/* uParam10 */                                                ,;
@@ -404,7 +409,7 @@ static function showResult( cAlias )
 	/* uParam16 */                                                ,;
 	/* uParam17 */                                                 )
 
-	oBtn2Exc:cToolTip := "Exporta para Excel."
+	oBtn2Csv:cToolTip := "Exporta para Csv."
 
 	oBtnClose := TButton():New(;
 	/* nRow     */  oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' ) ,;
@@ -464,21 +469,111 @@ static function showResult( cAlias )
 	oBrowse:setArray( aLinesBrw )
 	oBrowse:bLine    := bLinesBrw
 
+	( cAlias )->( DbCloseArea() )
+
 	oDlg:Activate(,,,.T.)
 
 	SetKey( VK_F5, bBlkF5 )
 	SetKey( VK_F6, bBlkF6 )
+	aLinesBrw := nil
+	aHeaders := nil
 
 return
 
-static function expToExcel( cAlias )
+static function expToCsv( aHeaders, aLinesBrw )
 
-	Local oFWMsExcel := FWMSExcel():New()
-	Local cWorkSheet := 'pSqlQuery'
+	MsgRun( 'Gerando CSV ...', 'Aguarde ...', {|| makeCsv( aHeaders, aLinesBrw ) } )
 
-	oFWMsExcel:AddworkSheet(cWorkSheet)
-	oFWMsExcel:AddTable(cWorkSheet,cAlias)
-	//TODO Tratar o resultado da query com treport
+return
+
+static function makeCsv( aHeaders, aLinesBrw )
+
+	Local cFile     := GetTempPath( .T. ) + GetNextAlias() + '.csv'
+	Local nHandle   := FCreate( cFile )
+	Local cBuffer   := ''
+	Local cAux      := ''
+	Local nQtdBytes := 0
+	Local nX        := 0
+	Local nZ        := 0
+	Local cValType  := ''
+
+	If nHandle # -1
+
+		//-- Gera Cabeçalho do arquivo
+		For nX := 1 To Len( aHeaders )
+
+			cBuffer += aHeaders[ nX ]
+
+			If nX < Len( aHeaders )
+
+				cBuffer += ";"
+
+			EndIf
+
+		Next
+
+		cBuffer += CRLF
+
+		nQtdBytes := Len( cBuffer )
+
+		FSeek(nHandle, 0, FS_END)
+
+		FWrite( nHandle, cBuffer, nQtdBytes )
+
+		cBuffer := ''
+
+		//-- Gera dados do arquivo
+
+		For nZ := 1 To Len( aLinesBrw )
+
+			For nX := 1 To Len( aLinesBrw[ nZ ] )
+
+				cValType := ValType( aLinesBrw[ nZ, nX ] )
+
+				If cValType == 'N'
+
+					cAux    := cValTochar( aLinesBrw[ nZ, nX ] )
+					cAux    := StrTran( cAux, '.', ',' )
+					cBuffer += cAux
+
+				ElseIf cValType $ 'DL'
+
+					cBuffer +=  cValTochar( aLinesBrw[ nZ, nX ] )
+
+				Else
+
+					cBuffer += '="'
+					cBuffer +=  cValTochar( aLinesBrw[ nZ, nX ] )
+					cBuffer +=  '"'
+
+				EndIf
+
+				If nX < Len( aLinesBrw[ nZ ] )
+
+					cBuffer += ";"
+
+				EndIf
+
+			Next
+
+			cBuffer += CRLF
+
+			nQtdBytes := Len( cBuffer )
+
+			FSeek(nHandle, 0, FS_END)
+
+			FWrite( nHandle, cBuffer, nQtdBytes )
+
+			cBuffer := ''
+
+		Next
+
+	EndIf
+
+	FClose( nHandle )
+
+	ShellExecute( 'Open', cFile, '', '', 1 )
+
 return
 
 static function makeLstBrw( cAlias, aHeaders, aLinesBrw, bLinesBrw )
