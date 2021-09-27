@@ -1,9 +1,9 @@
 #include 'totvs.ch'
 #include 'sigawin.ch'
 #include 'dwconst.ch'
+#include 'prconst.ch'
 //#include 'protheus.ch'
 //#include "stdwin.ch"
-//#include 'prconst.ch'
 
 user function pSqlDev()
 
@@ -18,6 +18,7 @@ user function pSqlDev()
 	Local oBtnQuery   := nil
 	local oBtnScript  := nil
 	local oBtnParse   := nil
+	local oBtnCsv     := nil
 	Local oBtnOpen    := nil
 	Local oBtnSave    := nil
 	Local oBtnClose   := nil
@@ -30,6 +31,7 @@ user function pSqlDev()
 	Local bQuery      := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' )  }
 	Local bScript     := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) }
 	Local bParse      := { || oWebEngine:runJavaScript( 'makeQueryObject(' + If( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) }
+	Local bCsv        := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "csv" )' )  }
 
 	oDfSzDlg:AddObject ( 'oButtons'   , 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oWebEngine' , 000, 000, .T., .T. )
@@ -38,6 +40,7 @@ user function pSqlDev()
 	oDfSzBtn:AddObject ( 'oBtnQuery' , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnScript', 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnParse' , 055, 015, .F., .F. )
+	oDfSzBtn:AddObject ( 'oBtnCsv'   , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnOpen'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnSave'  , 055, 015, .F., .F. )
 	oDfSzBtn:AddObject ( 'oBtnClose' , 055, 015, .F., .F. )
@@ -128,6 +131,27 @@ user function pSqlDev()
 	/* uParam17 */                                                 )
 
 	oBtnParse:cToolTip := "Faz o parse da query, tratando e resolvendo o embedded sql."
+
+	oBtnCsv := TButton():New(;
+	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnCsv', 'LININI' ) ,;
+	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnCsv', 'COLINI' ) ,;
+	/* cCaption */                                        'CSV' ,;
+	/* oWnd     */                                     oDlgMain ,;
+	/* bAction  */                                         bCsv ,;
+	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnCsv', 'XSIZE'  ) ,;
+	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnCsv', 'YSIZE'  ) ,;
+	/* uParam8  */                                              ,;
+	/* oFont    */                                     oFontBtn ,;
+	/* uParam10 */                                              ,;
+	/* lPixel   */                                          .T. ,;
+	/* uParam12 */                                              ,;
+	/* uParam13 */                                              ,;
+	/* uParam14 */                                              ,;
+	/* bWhen    */                                              ,;
+	/* uParam16 */                                              ,;
+	/* uParam17 */                                               )
+
+	oBtnParse:cToolTip := "Exporta o resultado da query diretamente para CSV."
 
 	oBtnOpen := TButton():New(;
 	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnOpen', 'LININI' ) ,;
@@ -280,7 +304,7 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 		memoWrite( cCacheFile, value )
 
-	elseIf key $ 'query/script/parse'
+	elseIf key $ 'query/script/parse/csv'
 
 		oJson:fromJson( value )
 		cQuery := oJson['query']
@@ -297,19 +321,29 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 
 		endIf
 
-		If key == 'query'
+		If key $ 'query/csv'
 
 			MsgRun ( 'Banco de Dados Processando a Query ...', 'Aguarde ...', { | | cAlias := MpSysOpenQuery( cQuery ) } )
 
 			if empty( cErro )
 
-				for nX := 1 to Len( aColumn )
+				if key == 'query'
 
-					TCSetField( cAlias, aColumn[ nX, 1 ],  aColumn[ nX, 2 ],  aColumn[ nX, 3 ],  aColumn[ nX, 4 ] )
+					for nX := 1 to Len( aColumn )
 
-				next nX
+						TCSetField( cAlias, aColumn[ nX, 1 ],  aColumn[ nX, 2 ],  aColumn[ nX, 3 ],  aColumn[ nX, 4 ] )
 
-				showResult( cAlias )
+					next nX
+
+					showResult( cAlias )
+
+				elseIf key == 'csv'
+
+					expToCsv( cAlias )
+
+				endIf
+
+				( cAlias )->( DbCloseArea() )
 
 			else
 
@@ -395,7 +429,7 @@ static function showResult( cAlias )
 	/* nCol     */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'COLINI' ) ,;
 	/* cCaption */                                        'EXCEL' ,;
 	/* oWnd     */                                           oDlg ,;
-	/* bAction  */       { || expToCsv( aHeaders, aLinesBrw ) } ,;
+	/* bAction  */                      { || expToCsv( cAlias ) } ,;
 	/* nWidth   */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'XSIZE'  ) ,;
 	/* nHeight  */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'YSIZE'  ) ,;
 	/* uParam8  */                                                ,;
@@ -469,8 +503,6 @@ static function showResult( cAlias )
 	oBrowse:setArray( aLinesBrw )
 	oBrowse:bLine    := bLinesBrw
 
-	( cAlias )->( DbCloseArea() )
-
 	oDlg:Activate(,,,.T.)
 
 	SetKey( VK_F5, bBlkF5 )
@@ -480,31 +512,38 @@ static function showResult( cAlias )
 
 return
 
-static function expToCsv( aHeaders, aLinesBrw )
+static function expToCsv( cAlias )
 
-	MsgRun( 'Gerando CSV ...', 'Aguarde ...', {|| makeCsv( aHeaders, aLinesBrw ) } )
+	MsgRun( 'Gerando CSV ...', 'Aguarde ...', {|| makeCsv( cAlias ) } )
 
 return
 
-static function makeCsv( aHeaders, aLinesBrw )
+static function makeCsv( cAlias )
 
-	Local cFile     := GetTempPath( .T. ) + GetNextAlias() + '.csv'
-	Local nHandle   := FCreate( cFile )
+	Local cFile     := GetNextAlias() + '.csv'
+	Local nHandle   := 0
 	Local cBuffer   := ''
 	Local cAux      := ''
 	Local nQtdBytes := 0
 	Local nX        := 0
-	Local nZ        := 0
 	Local cValType  := ''
+
+	if GetRemoteType() # 5
+
+		cFile   := tFileDialog(,,,,,GETF_RETDIRECTORY) + '\' + cFile
+
+	endIf
+
+	nHandle := FCreate( cFile )
 
 	If nHandle # -1
 
 		//-- Gera Cabeçalho do arquivo
-		For nX := 1 To Len( aHeaders )
+		For nX := 1 To ( cAlias )->( FCount() )
 
-			cBuffer += aHeaders[ nX ]
+			cBuffer += ( cAlias )->( FieldName( nX ) )
 
-			If nX < Len( aHeaders )
+			If nX < ( cAlias )->( FCount() )
 
 				cBuffer += ";"
 
@@ -523,32 +562,33 @@ static function makeCsv( aHeaders, aLinesBrw )
 		cBuffer := ''
 
 		//-- Gera dados do arquivo
+		( cAlias )->( DbGoTop() )
 
-		For nZ := 1 To Len( aLinesBrw )
+		While ! ( cAlias )->( Eof() )
 
-			For nX := 1 To Len( aLinesBrw[ nZ ] )
+			For nX := 1 To ( cAlias )->( FCount() )
 
-				cValType := ValType( aLinesBrw[ nZ, nX ] )
+				cValType := ValType( ( cAlias )->&( FieldName( nX ) ) )
 
 				If cValType == 'N'
 
-					cAux    := cValTochar( aLinesBrw[ nZ, nX ] )
+					cAux    := cValTochar( ( cAlias )->&( FieldName( nX ) ) )
 					cAux    := StrTran( cAux, '.', ',' )
 					cBuffer += cAux
 
 				ElseIf cValType $ 'DL'
 
-					cBuffer +=  cValTochar( aLinesBrw[ nZ, nX ] )
+					cBuffer +=  cValTochar( ( cAlias )->&( FieldName( nX ) ) )
 
 				Else
 
-					cBuffer += '="'
-					cBuffer +=  cValTochar( aLinesBrw[ nZ, nX ] )
-					cBuffer +=  '"'
+					//cBuffer += '="'
+					cBuffer +=  cValTochar( ( cAlias )->&( FieldName( nX ) ) )
+					//cBuffer +=  '"'
 
 				EndIf
 
-				If nX < Len( aLinesBrw[ nZ ] )
+				If nX < ( cAlias )->( FCount() )
 
 					cBuffer += ";"
 
@@ -566,13 +606,24 @@ static function makeCsv( aHeaders, aLinesBrw )
 
 			cBuffer := ''
 
-		Next
+			( cAlias )->( DbSkip() )
+
+		End
 
 	EndIf
 
 	FClose( nHandle )
 
-	ShellExecute( 'Open', cFile, '', '', 1 )
+	if GetRemoteType() # 5
+
+		ShellExecute( 'Open', cFile, '', '', 1 )
+
+	else
+
+		CpyS2TW( cFile, .T.)
+		FErase( cFile )
+
+	endIf
 
 return
 
