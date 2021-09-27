@@ -427,7 +427,7 @@ static function showResult( cAlias )
 	oBtn2Csv := TButton():New(;
 	/* nRow     */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'LININI' ) ,;
 	/* nCol     */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'COLINI' ) ,;
-	/* cCaption */                                        'EXCEL' ,;
+	/* cCaption */                                          'CSV' ,;
 	/* oWnd     */                                           oDlg ,;
 	/* bAction  */                      { || expToCsv( cAlias ) } ,;
 	/* nWidth   */  oDfSzBtn:GetDimension( 'oBtn2Csv', 'XSIZE'  ) ,;
