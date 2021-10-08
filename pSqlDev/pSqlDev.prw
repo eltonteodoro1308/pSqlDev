@@ -28,10 +28,10 @@ user function pSqlDev()
 	Local oWebChannel := nil
 	Local oWebEngine  := nil
 	Local cTitle      := 'pSqlDev - Protheus SQL Developer'
-	Local bQuery      := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "query" )' )  }
-	Local bScript     := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "script" )' ) }
-	Local bParse      := { || oWebEngine:runJavaScript( 'makeQueryObject(' + If( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) }
-	Local bCsv        := { || oWebEngine:runJavaScript( 'makeQueryObject( true, "csv" )' )  }
+	Local bQuery      := { || oWebEngine:runJavaScript( 'editorHandler( true, "query" )' )  }
+	Local bScript     := { || oWebEngine:runJavaScript( 'editorHandler( true, "script" )' ) }
+	Local bParse      := { || oWebEngine:runJavaScript( 'editorHandler(' + If( lChkCommnt, 'true', 'false' ) + ',"parse" )' ) }
+	Local bCsv        := { || oWebEngine:runJavaScript( 'editorHandler( true, "csv" )' )  }
 
 	oDfSzDlg:AddObject ( 'oButtons'   , 000, 015, .T., .F. )
 	oDfSzDlg:AddObject ( 'oWebEngine' , 000, 000, .T., .T. )
@@ -158,7 +158,7 @@ user function pSqlDev()
 	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnOpen', 'COLINI' ) ,;
 	/* cCaption */                                       'ABRIR' ,;
 	/* oWnd     */                                      oDlgMain ,;
-	/* bAction  */                         { || alert('ABRIR') } ,;
+	/* bAction  */                { || openQuery( oWebEngine ) } ,;
 	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnOpen', 'XSIZE'  ) ,;
 	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnOpen', 'YSIZE'  ) ,;
 	/* uParam8  */                                               ,;
@@ -179,7 +179,7 @@ user function pSqlDev()
 	/* nCol     */ oDfSzBtn:GetDimension( 'oBtnSave', 'COLINI' ) ,;
 	/* cCaption */                                      'SALVAR' ,;
 	/* oWnd     */                                      oDlgMain ,;
-	/* bAction  */                        { || alert('SALVAR') } ,;
+	/* bAction  */                { || saveQuery( oWebEngine ) } ,;
 	/* nWidth   */ oDfSzBtn:GetDimension( 'oBtnSave', 'XSIZE'  ) ,;
 	/* nHeight  */ oDfSzBtn:GetDimension( 'oBtnSave', 'YSIZE'  ) ,;
 	/* uParam8  */                                               ,;
@@ -193,7 +193,7 @@ user function pSqlDev()
 	/* uParam16 */                                               ,;
 	/* uParam17 */                                                )
 
-	oBtnSave:cToolTip := "Salvo a consulta."
+	oBtnSave:cToolTip := "Salva a consulta."
 
 	oBtnClose := TButton():New(;
 	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnClose', 'LININI' ) ,;
@@ -285,6 +285,24 @@ user function pSqlDev()
 
 return
 
+static function openQuery( oWebEngine )
+
+	Local cFile := tFileDialog('SQL files (*.sql)')
+
+	if !empty( cFile )
+
+		oWebEngine:runJavaScript( "document.querySelector('textarea').value = `" + memoRead( cFile ) + "`" )
+
+	endIf
+
+return
+
+static function saveQuery( oWebEngine )
+
+	oWebEngine:runJavaScript( 'editorHandler( null, "save" )' )
+
+return
+
 static function jsToAdvpl( self, key, value, cCacheFile )
 
 	Local oJson   := jsonObject():New()
@@ -303,6 +321,16 @@ static function jsToAdvpl( self, key, value, cCacheFile )
 	elseIf key == 'recordQuery'
 
 		memoWrite( cCacheFile, value )
+
+	elseIf key == 'save'
+
+		cFile := tFileDialog(,,,,.T.)
+
+		if !Empty(cFile)
+
+			memoWrite( cFile, value )
+
+		endIf
 
 	elseIf key $ 'query/script/parse/csv'
 
@@ -520,6 +548,7 @@ return
 
 static function makeCsv( cAlias )
 
+	Local cPath     := ''
 	Local cFile     := GetNextAlias() + '.csv'
 	Local nHandle   := 0
 	Local cBuffer   := ''
@@ -530,7 +559,17 @@ static function makeCsv( cAlias )
 
 	if GetRemoteType() # 5
 
-		cFile   := tFileDialog(,,,,,GETF_RETDIRECTORY) + '\' + cFile
+		cPath := tFileDialog(,,,,,GETF_RETDIRECTORY)
+
+		if !Empty( cPath )
+
+			cFile   := cPath + '\' + cFile
+
+		else
+
+			return
+
+		endIf
 
 	endIf
 

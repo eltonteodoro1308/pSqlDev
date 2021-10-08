@@ -77,7 +77,7 @@
        * @param {boolean} trimComments - Indica se os comentários serão excluídos
        * @param {string} commandType - Indica se será processada uma consulta (SELECT) ou um comando SQL (INSERT, UPDATE, DELETE)
        */
-      function makeQueryObject(trimComments, commandType) {
+      function editorHandler(trimComments, commandType) {
         // Cria o objeto com as informações da query
         let queryObject = {};
         // Variável que referencia ao componente editor (textarea)
@@ -93,6 +93,13 @@
 
         // Envia ao advpl commando para gravar a query em disco
         twebchannel.jsToAdvpl('recordQuery', value);
+
+        // Verifica se o comando recebido indica que a query será salva em um arquivo
+        if (commandType == 'save') {
+          // Envia ao advpl commando para salvar a query em um arquivo e encerra a função
+          twebchannel.jsToAdvpl(commandType, value);
+          return;
+        }
 
         /**
          * Cria a propriedade query com o conteúdo selecionado do editor
@@ -115,7 +122,6 @@
             /(^[ \t]*\*.*$)|(--.*)|(((\/\*)+?[\w\W]*?(\*\/)+))/gim,
             ''
           );
-          
         }
 
         // Coleta as expressões embarcadas (%EXP:%)
