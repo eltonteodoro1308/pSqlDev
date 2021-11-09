@@ -5,6 +5,9 @@
 //#include 'protheus.ch'
 //#include "stdwin.ch"
 
+//TODO Incluir um campo onde informar limite de linhas a serem exibidas
+//TODO Permitir a execução de mais de um comando sql separados por ;
+
 user function pSqlDev()
 
 	Static oDlgMain   := nil
@@ -151,7 +154,7 @@ user function pSqlDev()
 	/* uParam16 */                                              ,;
 	/* uParam17 */                                               )
 
-	oBtnParse:cToolTip := "Exporta o resultado da query diretamente para CSV."
+	oBtnCsv:cToolTip := "Exporta o resultado da query diretamente para CSV."
 
 	oBtnOpen := TButton():New(;
 	/* nRow     */ oDfSzBtn:GetDimension( 'oBtnOpen', 'LININI' ) ,;
