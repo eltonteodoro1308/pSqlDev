@@ -12,3 +12,22 @@ Protheus Sql Developer
 8. Permite o uso de pergunta no execução.
 9. Permite a conversão de dados conforme embedded sql ( column [campo] as [tipo] )
 10. Utilização de index no order da consulta
+
+
+|*nome*|*idade*|
+|-----|------|
+|elton|46|
+|italo|15|
+
+```sql
+
+SELECT * FROM %TABLE:SA1%
+
+```
+
+```json
+{ "NOME": "ELTON",
+	"IDADE": 46
+}
+
+```
