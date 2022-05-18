@@ -21,27 +21,27 @@
 
 ## Funcionalidades
 
-> ### Salva a última query executada.
+### Salva a última query executada.
 
-> > Após executar 
+> Após executar 
 
-> ### Utilização de comentártios.
+### Utilização de comentártios.
 
-> ### Selecionar trecho da query a ser executada.
+### Selecionar trecho da query a ser executada.
 
-> ### Executa update, delete e insert.
+### Executa update, delete e insert.
 
-> ### Use Embedded Sql.
+### Use Embedded Sql.
 
-> ### Processa o Embedded Sql e gera a query pura.
+### Processa o Embedded Sql e gera a query pura.
 
-> ### Criação de variável advpl em tempo de execução.
+### Criação de variável advpl em tempo de execução.
 
-> ### Permite o uso de pergunta no execução.
+### Permite o uso de pergunta no execução.
 
-> ### Permite a conversão de dados conforme Embedded Sql
+### Permite a conversão de dados conforme Embedded Sql
 
-> ### Utilização de index no order da consulta
+### Utilização de index no order da consulta
 
 | *nome* | *idade* |
 | - | - |
