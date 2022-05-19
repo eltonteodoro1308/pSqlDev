@@ -4,7 +4,7 @@
 
 - [Introdução](#Introdução)
 - [Funcionalidades](#Funcionalidades)
-  - [Salva a última query executada.](#Salva-a-última-query-executada.)
+  - [Salva a última query executada.](#Salva)
   - [Utilização de comentártios.](#Utilização_de_comentártios.)
   - [Selecionar trecho da query a ser executada.](#Selecionar_trecho_da_query_a_ser_executada.)
   - [Executa update, delete e insert.](#Executa_update,_delete_e_insert.)
@@ -21,7 +21,7 @@
 
 ## Funcionalidades
 
-## Salva a última query executada.
+### Salva
 
 > Após executar 
 
