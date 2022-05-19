@@ -21,7 +21,7 @@
 
 ## Funcionalidades
 
-### Salva a última query executada.
+## Salva a última query executada.
 
 > Após executar 
 
