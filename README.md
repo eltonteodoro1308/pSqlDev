@@ -14,6 +14,4 @@ Execute consultas e manipule o banco de dados do protheus através de instruçõ
 * Converta o tipo de dados com recuros do Embedded SQL.
 * Utilize o o Index Order do Embedded SQL
 
-## Vídeo de demonstração da ferramenta no youtube
-
-[https://youtu.be/xXAa8GsNk5o](https://)
+[Veja demonstração no Youtube](https://youtu.be/xXAa8GsNk5o)
