@@ -1,5 +1,7 @@
 # pSqlDev - Protheus Sql Developer
 
+![pSqlDev - Protheus Sql Developer](./img.jpg)
+
 ## Objetivo
 
 Execute consultas e manipule o banco de dados do protheus através de instruções SQL e apresenta os seguintes recursos:
